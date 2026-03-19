@@ -214,11 +214,13 @@ class LoginGUI:
             self.games_listbox.delete(0, tk.END)
             
             for i, game in enumerate(games):
+                game_id = game.get('比赛ID', '')
                 game_name = game.get('比赛名称', f'赛事 {i+1}')
+                create_date = game.get('创建日期', '')
                 game_status = game.get('比赛状态', '')
-                display_text = f"{i+1}. {game_name}"
-                if game_status:
-                    display_text += f" ({game_status})"
+                game_desc = game.get('比赛描述', '')
+                
+                display_text = f"{game_id}：{game_name}，{create_date}，{game_status}，{game_desc}"
                 
                 self.games_listbox.insert(tk.END, display_text)
                 self.log(f"[赛事] 添加: {game_name} - {game_status}")
@@ -257,6 +259,9 @@ class LoginGUI:
             game_name = game.get('比赛名称', 'Unknown')
             self.log(f"[赛事] 正在进入赛事: {game_name}")
             self.log(f"[赛事] 跳转到: {game_url}")
+            
+            if game_url.startswith('/'):
+                game_url = f"https://www.ibizsim.cn{game_url}"
             
             if self.page_handler.navigate(game_url):
                 self.update_status(f"已进入赛事: {game_name}", color="green")
