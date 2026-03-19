@@ -14,6 +14,7 @@ from src.config.settings import Settings
 from src.browser.browser_manager import BrowserManager
 from src.browser.page_handler import PageHandler
 from src.auth.login_handler import LoginHandler
+from src.data.game_extractor import GameExtractor
 from src.utils.logger import get_logger
 
 
@@ -21,7 +22,7 @@ class LoginGUI:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("iBizSim 登录验证工具")
-        self.root.geometry("600x500")
+        self.root.geometry("800x700")
         self.root.resizable(False, False)
         
         self.username = tk.StringVar()
@@ -30,12 +31,16 @@ class LoginGUI:
         self.status = tk.StringVar(value="准备就绪")
         self.is_running = False
         
+        self.games = []
+        self.selected_game = None
+        
         self.setup_ui()
         self.logger = get_logger()
         
         self.browser_manager = None
         self.page_handler = None
         self.login_handler = None
+        self.game_extractor = None
         self.settings = None
     
     def setup_ui(self):
@@ -78,6 +83,8 @@ class LoginGUI:
             show=""
         )
         password_entry.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
+        
+        self.password_entry = password_entry
         
         show_password_check = ttk.Checkbutton(
             input_frame,
@@ -127,6 +134,29 @@ class LoginGUI:
         )
         status_label.pack(fill=tk.X)
         
+        games_frame = ttk.LabelFrame(main_frame, text="我参加的赛事", padding="10")
+        games_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
+        
+        self.games_listbox = tk.Listbox(
+            games_frame,
+            height=6,
+            font=("Microsoft YaHei UI", 10),
+            selectmode=tk.SINGLE
+        )
+        self.games_listbox.pack(fill=tk.BOTH, expand=True)
+        
+        scrollbar = ttk.Scrollbar(self.games_listbox, orient=tk.VERTICAL, command=self.games_listbox.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.games_listbox.config(yscrollcommand=scrollbar.set)
+        
+        enter_game_button = ttk.Button(
+            games_frame,
+            text="进入比赛",
+            command=self.enter_game,
+            state=tk.DISABLED
+        )
+        enter_game_button.pack(fill=tk.X, pady=(5, 0))
+        
         log_frame = ttk.LabelFrame(main_frame, text="日志", padding="10")
         log_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
         
@@ -141,6 +171,7 @@ class LoginGUI:
         
         self.login_button = login_button
         self.stop_button = stop_button
+        self.enter_game_button = enter_game_button
     
     def log(self, message):
         self.log_text.insert(tk.END, f"{message}\n")
@@ -161,6 +192,78 @@ class LoginGUI:
         show = self.show_password.get()
         self.password_entry.config(show="" if show else "*")
         self.log(f"[密码] 密码显示模式: {'可见' if show else '隐藏'}")
+    
+    def load_games(self):
+        try:
+            self.log("[赛事] 正在加载赛事列表...")
+            
+            if not self.page_handler:
+                self.log("[错误] 页面处理器未初始化")
+                return
+            
+            self.game_extractor = GameExtractor(self.page_handler)
+            
+            games = self.game_extractor.extract_games_from_table()
+            
+            if not games:
+                self.log("[赛事] 尝试提取链接...")
+                games = self.game_extractor.extract_games_with_links()
+            
+            self.games = games
+            
+            self.games_listbox.delete(0, tk.END)
+            
+            for i, game in enumerate(games):
+                game_name = game.get('name', f'赛事 {i+1}')
+                self.games_listbox.insert(tk.END, game_name)
+                self.log(f"[赛事] 添加: {game_name}")
+            
+            self.update_status(f"找到 {len(games)} 个赛事", color="green")
+            self.log(f"[赛事] 总共加载了 {len(games)} 个赛事")
+            
+            if games:
+                self.enter_game_button.config(state=tk.NORMAL)
+            else:
+                self.enter_game_button.config(state=tk.DISABLED)
+                
+        except Exception as e:
+            self.log(f"[错误] 加载赛事列表失败: {e}")
+            self.update_status("加载赛事列表失败", color="red")
+    
+    def enter_game(self):
+        try:
+            selection = self.games_listbox.curselection()
+            if not selection:
+                messagebox.showwarning("提示", "请先选择一个赛事")
+                return
+            
+            index = selection[0]
+            if index >= len(self.games):
+                messagebox.showerror("错误", "选择的赛事无效")
+                return
+            
+            game = self.games[index]
+            game_url = game.get('url')
+            
+            if not game_url:
+                messagebox.showerror("错误", "该赛事没有有效的链接")
+                return
+            
+            self.log(f"[赛事] 正在进入赛事: {game.get('name', 'Unknown')}")
+            self.log(f"[赛事] 跳转到: {game_url}")
+            
+            if self.page_handler.navigate(game_url):
+                self.update_status(f"已进入赛事: {game.get('name', 'Unknown')}", color="green")
+                self.log(f"[成功] 成功跳转到赛事页面")
+            else:
+                self.update_status("跳转失败", color="red")
+                self.log("[错误] 无法跳转到赛事页面")
+                messagebox.showerror("错误", "无法跳转到赛事页面")
+                
+        except Exception as e:
+            self.log(f"[错误] 进入赛事失败: {e}")
+            self.update_status("进入赛事失败", color="red")
+            messagebox.showerror("错误", f"进入赛事失败：\n\n{e}")
     
     def start_verification(self):
         if self.is_running:
@@ -261,17 +364,17 @@ class LoginGUI:
                 self.log(f"[状态] 已登录: {self.login_handler.is_authenticated()}")
                 self.log(f"[页面] 当前页面: {page.url}")
                 
-                self.update_status("等待验证中...", color="blue")
-                self.log("[等待] 等待5秒供您验证...")
+                self.update_status("正在加载赛事列表...", color="blue")
+                self.log("[赛事] 开始加载赛事列表...")
                 
-                page.wait_for_timeout(5000)
+                self.root.after(0, self.load_games)
                 
                 self.update_status("验证完成", color="green")
                 self.log("[完成] 验证测试完成")
                 
                 messagebox.showinfo(
                     "验证成功",
-                    "登录验证成功！\n\n请查看浏览器窗口确认登录状态。"
+                    "登录验证成功！\n\n请查看浏览器窗口确认登录状态。\n\n赛事列表已加载到界面中。"
                 )
             else:
                 self.update_status("登录失败", color="red")
