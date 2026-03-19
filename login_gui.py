@@ -379,7 +379,7 @@ class LoginGUI:
                     self.update_status("正在加载赛事列表...", color="blue")
                     self.log("[赛事] 开始加载赛事列表...")
                     
-                    self.root.after(0, self.load_games)
+                    self.load_games()
                 else:
                     self.log("[错误] 无法导航到赛事列表页面")
                     self.update_status("导航到赛事列表失败", color="red")
