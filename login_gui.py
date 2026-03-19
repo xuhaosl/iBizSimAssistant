@@ -373,7 +373,7 @@ class LoginGUI:
                 self.update_status("正在导航到赛事列表页面...", color="blue")
                 self.log("[赛事] 导航到mygames页面...")
                 
-                mygames_url = self.settings.get_full_url('/games/mygames')
+                mygames_url = "https://www.ibizsim.cn/games/mygames"
                 if self.page_handler.navigate(mygames_url):
                     self.log("[赛事] 成功导航到赛事列表页面")
                     self.update_status("正在加载赛事列表...", color="blue")

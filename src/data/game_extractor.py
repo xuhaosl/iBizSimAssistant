@@ -14,11 +14,23 @@ class GameExtractor:
             
             games = []
             
+            self.logger.info("等待页面加载完成...")
+            self.page_handler.page.wait_for_load_state('networkidle', timeout=10000)
+            
             tables = self.page_handler.page.query_selector_all('table')
             self.logger.info(f"找到 {len(tables)} 个表格")
             
             if len(tables) < 2:
-                self.logger.warning("页面表格数量不足，无法提取赛事信息")
+                self.logger.warning("页面表格数量不足，尝试其他提取方法")
+                
+                page_content = self.page_handler.page.content()
+                self.logger.debug(f"页面内容长度: {len(page_content)}")
+                
+                if 'table' in page_content.lower():
+                    self.logger.info("页面包含table标签，但query_selector未找到")
+                    all_tables = self.page_handler.page.query_selector_all('table')
+                    self.logger.info(f"再次查询找到 {len(all_tables)} 个表格")
+                
                 return []
             
             target_table = tables[1]
