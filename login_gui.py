@@ -34,6 +34,9 @@ class LoginGUI:
         self.games = []
         self.selected_game = None
         self.navigation_queue = []
+        self.playwright_thread = None
+        self.playwright_queue = []
+        self.playwright_running = False
         
         self.setup_ui()
         self.logger = get_logger()
@@ -273,34 +276,58 @@ class LoginGUI:
             self.log(f"[赛事] 转换后URL: {game_url}")
             self.update_status(f"正在进入赛事: {game_name}", color="blue")
             
-            self.navigation_queue.append((game_url, game_name))
-            self.log(f"[队列] 已添加导航请求到队列")
+            self.playwright_queue.append(('navigate', game_url, game_name))
+            self.log(f"[队列] 已添加导航请求到Playwright队列")
+            
+            if not self.playwright_thread or not self.playwright_thread.is_alive():
+                self.log(f"[Playwright] 启动Playwright操作线程")
+                self.playwright_running = True
+                self.playwright_thread = threading.Thread(target=self.playwright_operation_loop)
+                self.playwright_thread.daemon = True
+                self.playwright_thread.start()
                 
         except Exception as e:
             self.log(f"[错误] 进入赛事失败: {e}")
             self.update_status("进入赛事失败", color="red")
             messagebox.showerror("错误", f"进入赛事失败：\n\n{e}")
     
-    def process_navigation_queue(self):
-        while self.navigation_queue:
-            game_url, game_name = self.navigation_queue.pop(0)
-            self.log(f"[队列] 处理导航请求: {game_name}")
-            
-            try:
-                if self.page_handler.navigate(game_url):
-                    self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_name}", color="green"))
-                    self.log(f"[成功] 成功跳转到赛事页面")
-                else:
-                    error_msg = "无法跳转到赛事页面"
-                    if not self.page_handler:
-                        error_msg = "浏览器未启动，请先登录"
-                    self.root.after(0, lambda: self.update_status("跳转失败", color="red"))
-                    self.log("[错误] 无法跳转到赛事页面")
-                    self.root.after(0, lambda: messagebox.showerror("错误", error_msg))
-            except Exception as e:
-                self.root.after(0, lambda: self.log(f"[错误] 导航失败: {e}"))
-                self.root.after(0, lambda: self.update_status("导航失败", color="red"))
-                self.root.after(0, lambda: messagebox.showerror("错误", f"导航失败：\n\n{e}"))
+    def playwright_operation_loop(self):
+        self.log("[Playwright] Playwright操作线程已启动")
+        while self.playwright_running:
+            if self.playwright_queue:
+                operation = self.playwright_queue.pop(0)
+                op_type = operation[0]
+                
+                try:
+                    if op_type == 'login':
+                        _, username, password = operation
+                        self.run_login_verification(username, password)
+                    elif op_type == 'navigate':
+                        _, game_url, game_name = operation
+                        self.log(f"[Playwright] 执行导航: {game_name}")
+                        
+                        if self.page_handler.navigate(game_url):
+                            self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_name}", color="green"))
+                            self.log(f"[成功] 成功跳转到赛事页面")
+                        else:
+                            error_msg = "无法跳转到赛事页面"
+                            if not self.page_handler:
+                                error_msg = "浏览器未启动，请先登录"
+                            self.root.after(0, lambda: self.update_status("跳转失败", color="red"))
+                            self.log("[错误] 无法跳转到赛事页面")
+                            self.root.after(0, lambda: messagebox.showerror("错误", error_msg))
+                    else:
+                        self.log(f"[警告] 未知的操作类型: {op_type}")
+                        
+                except Exception as e:
+                    self.root.after(0, lambda: self.log(f"[错误] Playwright操作失败: {e}"))
+                    self.root.after(0, lambda: self.update_status("操作失败", color="red"))
+                    self.root.after(0, lambda: messagebox.showerror("错误", f"Playwright操作失败：\n\n{e}"))
+            else:
+                import time
+                time.sleep(0.1)
+        
+        self.log("[Playwright] Playwright操作线程已退出")
     
     def start_verification(self):
         if self.is_running:
@@ -322,15 +349,21 @@ class LoginGUI:
         self.log(f"[开始] 使用用户名: {username}")
         self.log(f"[开始] 使用密码: {password}")
         
-        thread = threading.Thread(target=self.run_verification, kwargs={'username': username, 'password': password})
-        thread.daemon = True
-        thread.start()
+        if not self.playwright_thread or not self.playwright_thread.is_alive():
+            self.playwright_running = True
+            self.playwright_thread = threading.Thread(target=self.playwright_operation_loop)
+            self.playwright_thread.daemon = True
+            self.playwright_thread.start()
+        
+        self.playwright_queue.append(('login', username, password))
+        self.log(f"[队列] 已添加登录请求到Playwright队列")
     
     def stop_verification(self):
         if not self.is_running:
             return
         
         self.is_running = False
+        self.playwright_running = False
         self.login_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.DISABLED)
         
@@ -340,7 +373,7 @@ class LoginGUI:
         if self.browser_manager:
             threading.Thread(target=self.cleanup_browser).start()
     
-    def run_verification(self, username, password):
+    def run_login_verification(self, username, password):
         try:
             self.log("[配置] 加载配置文件...")
             self.settings = Settings()
@@ -414,10 +447,6 @@ class LoginGUI:
                 else:
                     self.log("[错误] 无法导航到赛事列表页面")
                     self.update_status("导航到赛事列表失败", color="red")
-                
-                queue_thread = threading.Thread(target=self.process_navigation_queue)
-                queue_thread.daemon = True
-                queue_thread.start()
             else:
                 self.update_status("登录失败", color="red")
                 self.log("[失败] 登录验证失败")
@@ -439,6 +468,7 @@ class LoginGUI:
             self.root.after(0, lambda: self.stop_button.config(state=tk.DISABLED))
     
     def cleanup_browser(self):
+        self.playwright_running = False
         if self.browser_manager:
             self.log("[清理] 关闭浏览器...")
             self.browser_manager.stop()
