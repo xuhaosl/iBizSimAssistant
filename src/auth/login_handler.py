@@ -17,7 +17,7 @@ class LoginHandler:
         try:
             self.logger.info("Starting login process...")
             
-            login_url = self.settings.get_full_url(self.settings.login.get('login_url'))
+            login_url = self.settings.get_full_url(self.settings.website.get('login_url'))
             
             if not self.page_handler.navigate(login_url):
                 self.logger.error("Failed to navigate to login page")
