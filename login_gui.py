@@ -282,13 +282,18 @@ class LoginGUI:
     
     def _navigate_to_game(self, game_url, game_name):
         try:
-            if self.page_handler.navigate(game_url):
+            self.log(f"[导航] 开始导航到: {game_url}")
+            
+            if self.page_handler and self.page_handler.navigate(game_url):
                 self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_name}", color="green"))
                 self.log(f"[成功] 成功跳转到赛事页面")
             else:
+                error_msg = "无法跳转到赛事页面"
+                if not self.page_handler:
+                    error_msg = "浏览器未启动，请先登录"
                 self.root.after(0, lambda: self.update_status("跳转失败", color="red"))
                 self.log("[错误] 无法跳转到赛事页面")
-                self.root.after(0, lambda: messagebox.showerror("错误", "无法跳转到赛事页面"))
+                self.root.after(0, lambda: messagebox.showerror("错误", error_msg))
         except Exception as e:
             self.root.after(0, lambda: self.log(f"[错误] 导航失败: {e}"))
             self.root.after(0, lambda: self.update_status("导航失败", color="red"))
