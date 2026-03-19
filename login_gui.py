@@ -33,6 +33,7 @@ class LoginGUI:
         
         self.games = []
         self.selected_game = None
+        self.navigation_queue = []
         
         self.setup_ui()
         self.logger = get_logger()
@@ -271,33 +272,34 @@ class LoginGUI:
             
             self.update_status(f"正在进入赛事: {game_name}", color="blue")
             
-            thread = threading.Thread(target=self._navigate_to_game, args=(game_url, game_name))
-            thread.daemon = True
-            thread.start()
+            self.navigation_queue.append((game_url, game_name))
+            self.log(f"[队列] 已添加导航请求到队列")
                 
         except Exception as e:
             self.log(f"[错误] 进入赛事失败: {e}")
             self.update_status("进入赛事失败", color="red")
             messagebox.showerror("错误", f"进入赛事失败：\n\n{e}")
     
-    def _navigate_to_game(self, game_url, game_name):
-        try:
-            self.log(f"[导航] 开始导航到: {game_url}")
+    def process_navigation_queue(self):
+        while self.navigation_queue:
+            game_url, game_name = self.navigation_queue.pop(0)
+            self.log(f"[队列] 处理导航请求: {game_name}")
             
-            if self.page_handler and self.page_handler.navigate(game_url):
-                self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_name}", color="green"))
-                self.log(f"[成功] 成功跳转到赛事页面")
-            else:
-                error_msg = "无法跳转到赛事页面"
-                if not self.page_handler:
-                    error_msg = "浏览器未启动，请先登录"
-                self.root.after(0, lambda: self.update_status("跳转失败", color="red"))
-                self.log("[错误] 无法跳转到赛事页面")
-                self.root.after(0, lambda: messagebox.showerror("错误", error_msg))
-        except Exception as e:
-            self.root.after(0, lambda: self.log(f"[错误] 导航失败: {e}"))
-            self.root.after(0, lambda: self.update_status("导航失败", color="red"))
-            self.root.after(0, lambda: messagebox.showerror("错误", f"导航失败：\n\n{e}"))
+            try:
+                if self.page_handler.navigate(game_url):
+                    self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_name}", color="green"))
+                    self.log(f"[成功] 成功跳转到赛事页面")
+                else:
+                    error_msg = "无法跳转到赛事页面"
+                    if not self.page_handler:
+                        error_msg = "浏览器未启动，请先登录"
+                    self.root.after(0, lambda: self.update_status("跳转失败", color="red"))
+                    self.log("[错误] 无法跳转到赛事页面")
+                    self.root.after(0, lambda: messagebox.showerror("错误", error_msg))
+            except Exception as e:
+                self.root.after(0, lambda: self.log(f"[错误] 导航失败: {e}"))
+                self.root.after(0, lambda: self.update_status("导航失败", color="red"))
+                self.root.after(0, lambda: messagebox.showerror("错误", f"导航失败：\n\n{e}"))
     
     def start_verification(self):
         if self.is_running:
@@ -411,6 +413,10 @@ class LoginGUI:
                 else:
                     self.log("[错误] 无法导航到赛事列表页面")
                     self.update_status("导航到赛事列表失败", color="red")
+                
+                queue_thread = threading.Thread(target=self.process_navigation_queue)
+                queue_thread.daemon = True
+                queue_thread.start()
             else:
                 self.update_status("登录失败", color="red")
                 self.log("[失败] 登录验证失败")
