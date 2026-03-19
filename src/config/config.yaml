@@ -1,0 +1,41 @@
+website:
+  base_url: "https://www.ibizsim.cn"
+  login_url: "/main/login"
+  target_pages:
+    - "/main/index"
+    - "/main/decision"
+
+login:
+  username_selector: "#username"
+  password_selector: "#password"
+  submit_selector: "#login-btn"
+  success_indicator: ".user-profile"
+
+excel:
+  input_file: "./data/input.xlsx"
+  output_file: "./data/output.xlsx"
+  sheet_name: "Sheet1"
+
+extraction:
+  - name: "data_field1"
+    selector: ".data-field1"
+    type: "text"
+    target_cell: "A1"
+  - name: "data_field2"
+    selector: ".data-field2"
+    type: "text"
+    target_cell: "B1"
+
+submission:
+  - excel_cell: "A2"
+    selector: "#form-field1"
+    type: "text"
+  - excel_cell: "B2"
+    selector: "#form-field2"
+    type: "text"
+  submit_selector: "#submit-btn"
+
+browser:
+  headless: false
+  timeout: 30000
+  screenshot_on_error: true
