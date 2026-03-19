@@ -431,7 +431,6 @@ class LoginGUI:
         finally:
             if not self.is_running:
                 self.cleanup_browser()
-            self.is_running = False
             self.root.after(0, lambda: self.login_button.config(state=tk.NORMAL))
             self.root.after(0, lambda: self.stop_button.config(state=tk.DISABLED))
     
