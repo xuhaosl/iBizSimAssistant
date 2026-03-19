@@ -63,8 +63,17 @@ class LoginHandler:
                     self.is_logged_in = True
                     return True
                 else:
-                    self.logger.error("Login failed - success indicator not found")
-                    return False
+                    self.logger.info("Success indicator not found, checking URL change...")
+                    current_url = self.page_handler.get_current_url()
+                    self.logger.info(f"Current URL: {current_url}")
+                    
+                    if 'login' not in current_url.lower() and current_url != login_url:
+                        self.logger.info("Login successful - URL changed from login page")
+                        self.is_logged_in = True
+                        return True
+                    else:
+                        self.logger.error("Login failed - still on login page")
+                        return False
             else:
                 self.logger.info("No success indicator configured, assuming login successful")
                 self.is_logged_in = True
