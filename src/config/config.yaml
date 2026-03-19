@@ -27,13 +27,14 @@ extraction:
     target_cell: "B1"
 
 submission:
-  - excel_cell: "A2"
-    selector: "#form-field1"
-    type: "text"
-  - excel_cell: "B2"
-    selector: "#form-field2"
-    type: "text"
   submit_selector: "#submit-btn"
+  fields:
+    - excel_cell: "A2"
+      selector: "#form-field1"
+      type: "text"
+    - excel_cell: "B2"
+      selector: "#form-field2"
+      type: "text"
 
 browser:
   headless: false
