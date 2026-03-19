@@ -239,6 +239,12 @@ class LoginGUI:
     
     def enter_game(self):
         try:
+            if not self.page_handler:
+                messagebox.showerror("错误", "浏览器未启动，请先登录")
+                self.update_status("浏览器未启动", color="red")
+                self.log("[错误] page_handler为None")
+                return
+                
             selection = self.games_listbox.curselection()
             if not selection:
                 messagebox.showwarning("提示", "请先选择一个赛事")
@@ -421,7 +427,8 @@ class LoginGUI:
             self.log("[清理] 关闭浏览器...")
             self.browser_manager.stop()
             self.browser_manager = None
-            self.page_handler = None
+            if not self.page_handler or not self.is_running:
+                self.page_handler = None
             self.login_handler = None
     
     def on_closing(self):
