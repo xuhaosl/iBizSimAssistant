@@ -406,14 +406,6 @@ class LoginGUI:
                 else:
                     self.log("[错误] 无法导航到赛事列表页面")
                     self.update_status("导航到赛事列表失败", color="red")
-                
-                self.update_status("验证完成", color="green")
-                self.log("[完成] 验证测试完成")
-                
-                messagebox.showinfo(
-                    "验证成功",
-                    "登录验证成功！\n\n请查看浏览器窗口确认登录状态。\n\n赛事列表已加载到界面中。"
-                )
             else:
                 self.update_status("登录失败", color="red")
                 self.log("[失败] 登录验证失败")
