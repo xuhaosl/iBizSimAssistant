@@ -417,7 +417,8 @@ class LoginGUI:
             self.log(f"[异常] 测试过程中发生异常: {e}")
             messagebox.showerror("错误", f"发生错误：\n\n{e}")
         finally:
-            self.cleanup_browser()
+            if not self.is_running:
+                self.cleanup_browser()
             self.is_running = False
             self.root.after(0, lambda: self.login_button.config(state=tk.NORMAL))
             self.root.after(0, lambda: self.stop_button.config(state=tk.DISABLED))
