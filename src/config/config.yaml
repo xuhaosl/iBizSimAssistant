@@ -6,9 +6,9 @@ website:
     - "/decision"
 
 login:
-  username_selector: "#username"
-  password_selector: "#password"
-  submit_selector: "#login-btn"
+  username_selector: 'input[name="name"]'
+  password_selector: 'input[name="password"]'
+  submit_selector: 'input[type="submit"]'
   success_indicator: ".user-profile"
 
 excel:
