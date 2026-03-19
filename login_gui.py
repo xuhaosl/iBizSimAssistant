@@ -214,9 +214,14 @@ class LoginGUI:
             self.games_listbox.delete(0, tk.END)
             
             for i, game in enumerate(games):
-                game_name = game.get('name', f'赛事 {i+1}')
-                self.games_listbox.insert(tk.END, game_name)
-                self.log(f"[赛事] 添加: {game_name}")
+                game_name = game.get('比赛名称', f'赛事 {i+1}')
+                game_status = game.get('比赛状态', '')
+                display_text = f"{i+1}. {game_name}"
+                if game_status:
+                    display_text += f" ({game_status})"
+                
+                self.games_listbox.insert(tk.END, display_text)
+                self.log(f"[赛事] 添加: {game_name} - {game_status}")
             
             self.update_status(f"找到 {len(games)} 个赛事", color="green")
             self.log(f"[赛事] 总共加载了 {len(games)} 个赛事")
@@ -249,11 +254,12 @@ class LoginGUI:
                 messagebox.showerror("错误", "该赛事没有有效的链接")
                 return
             
-            self.log(f"[赛事] 正在进入赛事: {game.get('name', 'Unknown')}")
+            game_name = game.get('比赛名称', 'Unknown')
+            self.log(f"[赛事] 正在进入赛事: {game_name}")
             self.log(f"[赛事] 跳转到: {game_url}")
             
             if self.page_handler.navigate(game_url):
-                self.update_status(f"已进入赛事: {game.get('name', 'Unknown')}", color="green")
+                self.update_status(f"已进入赛事: {game_name}", color="green")
                 self.log(f"[成功] 成功跳转到赛事页面")
             else:
                 self.update_status("跳转失败", color="red")
@@ -364,10 +370,19 @@ class LoginGUI:
                 self.log(f"[状态] 已登录: {self.login_handler.is_authenticated()}")
                 self.log(f"[页面] 当前页面: {page.url}")
                 
-                self.update_status("正在加载赛事列表...", color="blue")
-                self.log("[赛事] 开始加载赛事列表...")
+                self.update_status("正在导航到赛事列表页面...", color="blue")
+                self.log("[赛事] 导航到mygames页面...")
                 
-                self.root.after(0, self.load_games)
+                mygames_url = self.settings.get_full_url('/games/mygames')
+                if self.page_handler.navigate(mygames_url):
+                    self.log("[赛事] 成功导航到赛事列表页面")
+                    self.update_status("正在加载赛事列表...", color="blue")
+                    self.log("[赛事] 开始加载赛事列表...")
+                    
+                    self.root.after(0, self.load_games)
+                else:
+                    self.log("[错误] 无法导航到赛事列表页面")
+                    self.update_status("导航到赛事列表失败", color="red")
                 
                 self.update_status("验证完成", color="green")
                 self.log("[完成] 验证测试完成")
