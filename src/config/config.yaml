@@ -1,9 +1,9 @@
 website:
-  base_url: "https://www.ibizsim.cn"
-  login_url: "/main/login"
+  base_url: "https://www.ibizsim.cn/main"
+  login_url: "/login"
   target_pages:
-    - "/main/index"
-    - "/main/decision"
+    - "/index"
+    - "/decision"
 
 login:
   username_selector: "#username"
