@@ -265,11 +265,12 @@ class LoginGUI:
             
             game_name = game.get('比赛名称', 'Unknown')
             self.log(f"[赛事] 正在进入赛事: {game_name}")
-            self.log(f"[赛事] 跳转到: {game_url}")
+            self.log(f"[赛事] 原始URL: {game_url}")
             
             if game_url.startswith('/'):
                 game_url = f"https://www.ibizsim.cn{game_url}"
             
+            self.log(f"[赛事] 转换后URL: {game_url}")
             self.update_status(f"正在进入赛事: {game_name}", color="blue")
             
             self.navigation_queue.append((game_url, game_name))
