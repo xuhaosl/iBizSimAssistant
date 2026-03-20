@@ -202,3 +202,10 @@ class PageHandler:
         except Exception as e:
             self.logger.error(f"Failed to submit form: {e}")
             return False
+    
+    def get_page(self):
+        try:
+            return self.page
+        except Exception as e:
+            self.logger.error(f"Failed to get page: {e}")
+            return None

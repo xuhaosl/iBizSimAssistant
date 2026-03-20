@@ -584,6 +584,201 @@ class LoginGUI:
             self.update_status("跳转到规则页面失败", color="red")
             messagebox.showerror("错误", f"跳转到规则页面失败：\n\n{e}")
     
+    def extract_rules_parameters_in_thread(self):
+        try:
+            if not self.page_handler:
+                self.log("[错误] 页面处理器未初始化")
+                return
+            
+            self.log("[参数] 开始提取规则参数...")
+            
+            page = self.page_handler.get_page()
+            if not page:
+                self.log("[错误] 无法获取页面对象")
+                return
+            
+            parameters = [
+                "当期可运输比例",
+                "公司总数",
+                "公司序号",
+                "原材料库存费用",
+                "购机费用",
+                "原材料固定运费",
+                "原材料变动运费",
+                "原材料可用比例",
+                "维修费",
+                "新员工培训费",
+                "安置费",
+                "基本工资",
+                "一加特殊工资",
+                "二班正班工资",
+                "二加工资",
+                "废品系数",
+                "最高工资系数",
+                "最低资金额度",
+                "贷款利息",
+                "国债利息",
+                "债券利息",
+                "税收比例",
+                "减税比例",
+                "资金有效性",
+                "本期利润",
+                "市场份额",
+                "累计分红",
+                "累计缴税",
+                "净资产",
+                "人均利润率",
+                "资本利润率"
+            ]
+            
+            param_values = {}
+            
+            for param in parameters:
+                try:
+                    value = ""
+                    
+                    if param == "当期可运输比例":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"本期产品的(\d+\.?\d*%)"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "公司总数":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"参加本次模拟的有(\d+)个组"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "原材料库存费用":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"原材料每期(\d+\.?\d*)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "购机费用":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"机器价格为([\d,\.]+)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                raw_value = match.group(1)
+                                if '.' in raw_value:
+                                    raw_value = raw_value.split('.')[0]
+                                value = raw_value.replace(',', '')
+                                self.log(f"[参数] 找到 '{param}' 的值: {value} (原始: {match.group(1)})")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "原材料固定运费":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"固定费用为(\d+\.?\d*)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "原材料变动运费":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"变动费用为(\d+\.?\d*)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    else:
+                        selectors = [
+                            f"#rule//*[contains(text(), '{param}')]/following-sibling::*[1]",
+                            f"#rule//*[contains(text(), '{param}')]/following-sibling::*[2]",
+                            f"#rule//*[contains(text(), '{param}')]/parent::*//*[contains(@class, 'value')]",
+                            f"#rule//*[contains(text(), '{param}')]/parent::*//*[contains(@class, 'param-value')]",
+                            f"#rule//td[contains(text(), '{param}')]/following-sibling::td[1]",
+                            f"#rule//td[contains(text(), '{param}')]/following-sibling::td[2]",
+                            f"#rule//div[contains(text(), '{param}')]/following-sibling::div[1]",
+                            f"#rule//div[contains(text(), '{param}')]/following-sibling::div[2]",
+                            f"#rule//span[contains(text(), '{param}')]/following-sibling::span[1]",
+                            f"#rule//span[contains(text(), '{param}')]/following-sibling::span[2]",
+                            f"#rule//*[contains(text(), '{param}')]/parent::*//td[position()>1]",
+                            f"#rule//*[contains(text(), '{param}')]/parent::*//div[position()>1]",
+                            f"#rule//*[contains(text(), '{param}')]/parent::*//span[position()>1]",
+                            f"#rule//text()[contains(., '{param}')]/parent::*/following-sibling::*[1]",
+                            f"#rule//text()[contains(., '{param}')]/parent::*/following-sibling::*[2]",
+                            f"#rule//*[contains(text(), '{param}')]/following::*[1]",
+                            f"#rule//*[contains(text(), '{param}')]/following::*[2]",
+                            f"#rule//*[contains(text(), '{param}')]/ancestor::*/following-sibling::*[1]",
+                            f"#rule//*[contains(text(), '{param}')]/ancestor::*/following-sibling::*[2]"
+                        ]
+                        
+                        for selector in selectors:
+                            try:
+                                elements = page.query_selector_all(selector)
+                                if elements:
+                                    for elem in elements:
+                                        text = elem.text_content().strip()
+                                        if text and text != param:
+                                            value = text
+                                            break
+                                    if value:
+                                        break
+                            except:
+                                continue
+                    
+                    param_values[param] = value
+                    
+                except Exception as e:
+                    self.log(f"[参数] 提取参数 '{param}' 失败: {e}")
+                    param_values[param] = ""
+            
+            for item in self.rules_table.get_children():
+                self.rules_table.delete(item)
+            
+            for param in parameters:
+                value = param_values.get(param, "")
+                self.rules_table.insert("", tk.END, values=(param, value))
+                if value:
+                    self.log(f"[参数] {param}: {value}")
+                else:
+                    self.log(f"[参数] {param}: (未找到)")
+            
+            self.update_status(f"已提取 {len([v for v in param_values.values() if v])} 个参数值", color="green")
+            self.log(f"[参数] 参数提取完成")
+            
+        except Exception as e:
+            self.log(f"[错误] 提取规则参数失败: {e}")
+            self.update_status("提取参数失败", color="red")
+    
     def playwright_operation_loop(self):
         self.log("[Playwright] Playwright操作线程已启动")
         self.root.after(0, self.bring_to_front)
@@ -603,6 +798,7 @@ class LoginGUI:
                         if self.page_handler.navigate(game_url):
                             if 'rules' in game_url:
                                 self.root.after(0, lambda: self.update_status(f"已跳转到规则页面: {game_id} - {game_name}", color="green"))
+                                self.playwright_queue.append(('extract_params',))
                             else:
                                 self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_id} - {game_name}", color="green"))
                                 self.root.after(0, lambda: self.rules_button.config(state=tk.NORMAL))
@@ -615,6 +811,8 @@ class LoginGUI:
                             self.root.after(0, lambda: self.update_status("跳转失败", color="red"))
                             self.log("[错误] 无法跳转到页面")
                             self.root.after(0, lambda: messagebox.showerror("错误", error_msg))
+                    elif op_type == 'extract_params':
+                        self.extract_rules_parameters_in_thread()
                     else:
                         self.log(f"[警告] 未知的操作类型: {op_type}")
                         
