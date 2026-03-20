@@ -16,7 +16,7 @@ echo.
 echo ========================================
 echo.
 
-python login_gui.py
+python -m src.main
 
 if %ERRORLEVEL% NEQ 0 (
     echo.

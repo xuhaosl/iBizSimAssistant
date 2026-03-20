@@ -126,9 +126,10 @@ def verify_and_fix_config():
         
         if not issues_found:
             print("\n✓ 配置文件验证通过！")
-            print("\n当前配置:")
-            print(yaml.dump(config, allow_unicode=True, default_flow_style=False))
-            return True
+        print("\n当前配置:")
+        print(yaml.dump(config, allow_unicode=True, default_flow_style=False))
+        print("\n可以运行主程序了：python -m src.main")
+        return True
         else:
             print("\n✗ 发现配置问题，请检查上述错误")
             return False

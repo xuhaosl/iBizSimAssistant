@@ -44,8 +44,7 @@ iBizSimAssistant 是一个功能完整的网页自动化助手，用于 iBizSim 
 - [tests/test_config.py](file:///e:/AI/TraeCN/iBizSimAssistant/tests/test_config.py) - 配置和验证器测试
 
 ### 验证工具（3个文件）
-
-- [login_gui.py](file:///e:/AI/TraeCN/iBizSimAssistant/login_gui.py) - 图形界面登录验证工具
+- [src/main.py](file:///e:/AI/TraeCN/iBizSimAssistant/src/main.py) - 图形界面登录验证工具（主程序）
 - [verify_login.py](file:///e:/AI/TraeCN/iBizSimAssistant/verify_login.py) - 命令行验证工具
 - [test_full_workflow.py](file:///e:/AI/TraeCN/iBizSimAssistant/test_full_workflow.py) - 完整工作流程测试
 
@@ -89,7 +88,7 @@ iBizSimAssistant 是一个功能完整的网页自动化助手，用于 iBizSim 
 
 ### 1. 图形界面工具（推荐日常使用）
 
-**文件**: [login_gui.py](file:///e:/AI/TraeCN/iBizSimAssistant/login_gui.py)
+**文件**: [src/main.py](file:///e:/AI/TraeCN/iBizSimAssistant/src/main.py) - 图形界面登录验证工具（主程序）
 
 **功能特性**:
 - 图形化用户界面
@@ -104,7 +103,7 @@ iBizSimAssistant 是一个功能完整的网页自动化助手，用于 iBizSim 
 
 **使用方式**:
 ```bash
-python login_gui.py
+python -m src.main
 ```
 
 ### 2. 命令行验证工具
