@@ -59,21 +59,30 @@ class LoginGUI:
         )
         title_label.pack(pady=(0, 20))
         
-        info_label = ttk.Label(
-            main_frame,
-            text="请输入您的 iBizSim 账号和密码",
-            font=("Microsoft YaHei UI", 10)
-        )
-        info_label.pack(pady=(0, 10))
+        columns_frame = ttk.Frame(main_frame)
+        columns_frame.pack(fill=tk.BOTH, expand=True)
         
-        input_frame = ttk.LabelFrame(main_frame, text="登录信息", padding="10")
+        columns_frame.columnconfigure(0, weight=1)
+        columns_frame.columnconfigure(1, weight=1)
+        columns_frame.columnconfigure(2, weight=1)
+        
+        column1 = ttk.Frame(columns_frame)
+        column1.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
+        
+        column2 = ttk.Frame(columns_frame)
+        column2.grid(row=0, column=1, sticky="nsew", padx=5)
+        
+        column3 = ttk.Frame(columns_frame)
+        column3.grid(row=0, column=2, sticky="nsew", padx=(5, 0))
+        
+        input_frame = ttk.LabelFrame(column1, text="登录信息", padding="10")
         input_frame.pack(fill=tk.X, pady=(0, 10))
         
         ttk.Label(input_frame, text="用户名:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
         username_entry = ttk.Entry(
             input_frame, 
             textvariable=self.username,
-            width=40,
+            width=25,
             font=("Microsoft YaHei UI", 10)
         )
         username_entry.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
@@ -82,7 +91,7 @@ class LoginGUI:
         password_entry = ttk.Entry(
             input_frame,
             textvariable=self.password,
-            width=40,
+            width=25,
             font=("Microsoft YaHei UI", 10),
             show=""
         )
@@ -98,47 +107,47 @@ class LoginGUI:
         )
         show_password_check.grid(row=2, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
         
-        button_frame = ttk.Frame(main_frame)
-        button_frame.pack(pady=(20, 0))
+        button_frame = ttk.Frame(input_frame)
+        button_frame.grid(row=3, column=0, columnspan=2, pady=(10, 0))
         
         login_button = ttk.Button(
             button_frame,
             text="登录",
             command=self.start_verification,
-            width=20,
+            width=12,
             state=tk.NORMAL
         )
-        login_button.pack(side=tk.LEFT, padx=5)
+        login_button.pack(side=tk.LEFT, padx=2)
         
         stop_button = ttk.Button(
             button_frame,
             text="停止",
             command=self.stop_verification,
-            width=20,
+            width=12,
             state=tk.DISABLED
         )
-        stop_button.pack(side=tk.LEFT, padx=5)
+        stop_button.pack(side=tk.LEFT, padx=2)
         
         clear_button = ttk.Button(
             button_frame,
             text="清空",
             command=self.clear_inputs,
-            width=20
+            width=12
         )
-        clear_button.pack(side=tk.LEFT, padx=5)
+        clear_button.pack(side=tk.LEFT, padx=2)
         
-        status_frame = ttk.LabelFrame(main_frame, text="状态", padding="10")
+        status_frame = ttk.LabelFrame(column1, text="状态", padding="10")
         status_frame.pack(fill=tk.X, pady=(10, 0))
         
         status_label = ttk.Label(
             status_frame,
             textvariable=self.status,
             font=("Microsoft YaHei UI", 10),
-            wraplength=500
+            wraplength=300
         )
         status_label.pack(fill=tk.X)
         
-        games_frame = ttk.LabelFrame(main_frame, text="我参加的赛事", padding="10")
+        games_frame = ttk.LabelFrame(column1, text="我参加的赛事", padding="10")
         games_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
         
         self.games_listbox = tk.Listbox(
@@ -169,14 +178,14 @@ class LoginGUI:
         )
         rules_button.pack(fill=tk.X, pady=(5, 0))
         
-        log_button_frame = ttk.Frame(main_frame)
+        log_button_frame = ttk.Frame(column1)
         log_button_frame.pack(fill=tk.X, pady=(10, 0))
         
         log_button = ttk.Button(
             log_button_frame,
             text="查看日志",
             command=self.show_log_dialog,
-            width=20
+            width=15
         )
         log_button.pack(side=tk.LEFT)
         
@@ -184,9 +193,53 @@ class LoginGUI:
             log_button_frame,
             text="退出",
             command=self.on_closing,
-            width=20
+            width=15
         )
         exit_button.pack(side=tk.RIGHT)
+        
+        file_frame = ttk.LabelFrame(column2, text="文件选择", padding="10")
+        file_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        ttk.Label(file_frame, text="文件地址:").pack(anchor=tk.W, padx=5, pady=5)
+        
+        file_path_var = tk.StringVar()
+        file_entry = ttk.Entry(
+            file_frame,
+            textvariable=file_path_var,
+            font=("Microsoft YaHei UI", 10)
+        )
+        file_entry.pack(fill=tk.X, padx=5, pady=(0, 5))
+        
+        open_button = ttk.Button(
+            file_frame,
+            text="打开",
+            command=lambda: self.open_file(file_path_var),
+            width=15
+        )
+        open_button.pack(anchor=tk.W, padx=5, pady=(0, 5))
+        
+        self.file_path_var = file_path_var
+        
+        rules_frame = ttk.LabelFrame(column2, text="规则框", padding="10")
+        rules_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
+        
+        self.rules_text = scrolledtext.ScrolledText(
+            rules_frame,
+            font=("Microsoft YaHei UI", 10),
+            wrap=tk.WORD
+        )
+        self.rules_text.pack(fill=tk.BOTH, expand=True)
+        
+        standby_frame = ttk.LabelFrame(column3, text="待用", padding="10")
+        standby_frame.pack(fill=tk.BOTH, expand=True)
+        
+        standby_label = ttk.Label(
+            standby_frame,
+            text="此区域待用",
+            font=("Microsoft YaHei UI", 12),
+            foreground="#7f8c8d"
+        )
+        standby_label.pack(expand=True)
         
         self.login_button = login_button
         self.stop_button = stop_button
@@ -205,6 +258,31 @@ class LoginGUI:
         self.log_text.insert(tk.END, f"{message}\n")
         self.log_text.see(tk.END)
         self.logger.info(message)
+    
+    def open_file(self, file_path_var):
+        from tkinter import filedialog
+        file_path = filedialog.askopenfilename(
+            title="选择文件",
+            filetypes=[
+                ("所有文件", "*.*"),
+                ("文本文件", "*.txt"),
+                ("Excel文件", "*.xlsx;*.xls"),
+                ("PDF文件", "*.pdf")
+            ]
+        )
+        if file_path:
+            file_path_var.set(file_path)
+            self.log(f"[文件] 已选择文件: {file_path}")
+            
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                self.rules_text.delete("1.0", tk.END)
+                self.rules_text.insert(tk.END, content)
+                self.log(f"[文件] 已加载文件内容到规则框")
+            except Exception as e:
+                self.log(f"[错误] 读取文件失败: {e}")
+                messagebox.showerror("错误", f"无法读取文件：\n\n{e}")
     
     def update_status(self, status, color="black"):
         self.status.set(status)
