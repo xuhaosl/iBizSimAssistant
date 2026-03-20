@@ -21,8 +21,8 @@ from src.utils.logger import get_logger
 class LoginGUI:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("iBizSim 登录验证工具")
-        self.root.geometry("800x700")
+        self.root.title("iBizSim 助手")
+        self.root.geometry("800x600")
         self.root.resizable(False, False)
         
         self.username = tk.StringVar()
@@ -53,7 +53,7 @@ class LoginGUI:
         
         title_label = ttk.Label(
             main_frame, 
-            text="iBizSim 网站登录验证",
+            text="iBizSim 助手",
             font=("Microsoft YaHei UI", 16, "bold"),
             foreground="#2c3e50"
         )
@@ -103,7 +103,7 @@ class LoginGUI:
         
         login_button = ttk.Button(
             button_frame,
-            text="开始验证",
+            text="登录",
             command=self.start_verification,
             width=20,
             state=tk.NORMAL
@@ -143,7 +143,7 @@ class LoginGUI:
         
         self.games_listbox = tk.Listbox(
             games_frame,
-            height=6,
+            height=15,
             font=("Microsoft YaHei UI", 10),
             selectmode=tk.SINGLE
         )
@@ -161,21 +161,28 @@ class LoginGUI:
         )
         enter_game_button.pack(fill=tk.X, pady=(5, 0))
         
-        log_frame = ttk.LabelFrame(main_frame, text="日志", padding="10")
-        log_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
+        log_button_frame = ttk.Frame(main_frame)
+        log_button_frame.pack(fill=tk.X, pady=(10, 0))
         
-        self.log_text = scrolledtext.ScrolledText(
-            log_frame,
-            width=70,
-            height=10,
-            font=("Consolas", 9),
-            wrap=tk.WORD
+        log_button = ttk.Button(
+            log_button_frame,
+            text="查看日志",
+            command=self.show_log_dialog,
+            width=20
         )
-        self.log_text.pack(fill=tk.BOTH, expand=True)
+        log_button.pack(side=tk.RIGHT)
         
         self.login_button = login_button
         self.stop_button = stop_button
         self.enter_game_button = enter_game_button
+        
+        self.log_text = scrolledtext.ScrolledText(
+            None,
+            width=80,
+            height=20,
+            font=("Consolas", 9),
+            wrap=tk.WORD
+        )
     
     def log(self, message):
         self.log_text.insert(tk.END, f"{message}\n")
@@ -196,6 +203,52 @@ class LoginGUI:
         show = self.show_password.get()
         self.password_entry.config(show="" if show else "*")
         self.log(f"[密码] 密码显示模式: {'可见' if show else '隐藏'}")
+    
+    def show_log_dialog(self):
+        log_window = tk.Toplevel(self.root)
+        log_window.title("日志")
+        log_window.geometry("800x600")
+        
+        log_frame = ttk.Frame(log_window, padding="10")
+        log_frame.pack(fill=tk.BOTH, expand=True)
+        
+        log_text = scrolledtext.ScrolledText(
+            log_frame,
+            width=80,
+            height=25,
+            font=("Consolas", 9),
+            wrap=tk.WORD
+        )
+        log_text.pack(fill=tk.BOTH, expand=True)
+        
+        log_text.insert(tk.END, self.log_text.get("1.0", tk.END))
+        log_text.config(state=tk.DISABLED)
+        
+        button_frame = ttk.Frame(log_frame)
+        button_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        close_button = ttk.Button(
+            button_frame,
+            text="关闭",
+            command=log_window.destroy,
+            width=15
+        )
+        close_button.pack(side=tk.RIGHT)
+        
+        clear_log_button = ttk.Button(
+            button_frame,
+            text="清空日志",
+            command=lambda: self.clear_log(log_text),
+            width=15
+        )
+        clear_log_button.pack(side=tk.RIGHT, padx=(0, 10))
+    
+    def clear_log(self, log_text_widget=None):
+        self.log_text.delete("1.0", tk.END)
+        if log_text_widget:
+            log_text_widget.config(state=tk.NORMAL)
+            log_text_widget.delete("1.0", tk.END)
+            log_text_widget.config(state=tk.DISABLED)
     
     def load_games(self):
         try:
