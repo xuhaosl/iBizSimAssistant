@@ -161,6 +161,14 @@ class LoginGUI:
         )
         enter_game_button.pack(fill=tk.X, pady=(5, 0))
         
+        rules_button = ttk.Button(
+            games_frame,
+            text="复制规则",
+            command=self.copy_rules,
+            state=tk.DISABLED
+        )
+        rules_button.pack(fill=tk.X, pady=(5, 0))
+        
         log_button_frame = ttk.Frame(main_frame)
         log_button_frame.pack(fill=tk.X, pady=(10, 0))
         
@@ -183,6 +191,7 @@ class LoginGUI:
         self.login_button = login_button
         self.stop_button = stop_button
         self.enter_game_button = enter_game_button
+        self.rules_button = rules_button
         
         self.log_text = scrolledtext.ScrolledText(
             None,
@@ -208,6 +217,7 @@ class LoginGUI:
         self.games_listbox.delete(0, tk.END)
         self.games = []
         self.enter_game_button.config(state=tk.DISABLED)
+        self.rules_button.config(state=tk.DISABLED)
         
         self.update_status("已清空输入框和赛事列表")
         self.log("[操作] 清空了输入框和赛事列表")
@@ -341,17 +351,18 @@ class LoginGUI:
                 messagebox.showerror("错误", "该赛事没有有效的链接")
                 return
             
+            game_id = game.get('比赛ID', '')
             game_name = game.get('比赛名称', 'Unknown')
-            self.log(f"[赛事] 正在进入赛事: {game_name}")
+            self.log(f"[赛事] 正在进入赛事: {game_id} - {game_name}")
             self.log(f"[赛事] 原始URL: {game_url}")
             
             if game_url.startswith('/'):
                 game_url = f"https://www.ibizsim.cn{game_url}"
             
             self.log(f"[赛事] 转换后URL: {game_url}")
-            self.update_status(f"正在进入赛事: {game_name}", color="blue")
+            self.update_status(f"正在进入赛事: {game_id} - {game_name}", color="blue")
             
-            self.playwright_queue.append(('navigate', game_url, game_name))
+            self.playwright_queue.append(('navigate', game_url, game_id, game_name))
             self.log(f"[队列] 已添加导航请求到Playwright队列")
             
             if not self.playwright_thread or not self.playwright_thread.is_alive():
@@ -366,6 +377,61 @@ class LoginGUI:
             self.update_status("进入赛事失败", color="red")
             messagebox.showerror("错误", f"进入赛事失败：\n\n{e}")
     
+    def copy_rules(self):
+        try:
+            if not self.page_handler:
+                messagebox.showerror("错误", "浏览器未启动，请先登录")
+                self.update_status("浏览器未启动", color="red")
+                self.log("[错误] page_handler为None")
+                return
+                
+            selection = self.games_listbox.curselection()
+            if not selection:
+                messagebox.showwarning("提示", "请先选择一个赛事")
+                return
+            
+            index = selection[0]
+            if index >= len(self.games):
+                messagebox.showerror("错误", "选择的赛事无效")
+                return
+            
+            game = self.games[index]
+            game_url = game.get('url')
+            
+            if not game_url:
+                messagebox.showerror("错误", "该赛事没有有效的链接")
+                return
+            
+            game_id = game.get('比赛ID', '')
+            game_name = game.get('比赛名称', 'Unknown')
+            
+            rules_url = game_url.replace('/welcome?', '/rules?')
+            
+            self.log(f"[规则] 正在跳转到规则页面: {game_id} - {game_name}")
+            self.log(f"[规则] 原始URL: {game_url}")
+            self.log(f"[规则] 规则URL: {rules_url}")
+            
+            if rules_url.startswith('/'):
+                rules_url = f"https://www.ibizsim.cn{rules_url}"
+            
+            self.log(f"[规则] 转换后URL: {rules_url}")
+            self.update_status(f"正在跳转到规则页面: {game_id} - {game_name}", color="blue")
+            
+            self.playwright_queue.append(('navigate', rules_url, game_id, game_name))
+            self.log(f"[队列] 已添加规则导航请求到Playwright队列")
+            
+            if not self.playwright_thread or not self.playwright_thread.is_alive():
+                self.log(f"[Playwright] 启动Playwright操作线程")
+                self.playwright_running = True
+                self.playwright_thread = threading.Thread(target=self.playwright_operation_loop)
+                self.playwright_thread.daemon = True
+                self.playwright_thread.start()
+                
+        except Exception as e:
+            self.log(f"[错误] 跳转到规则页面失败: {e}")
+            self.update_status("跳转到规则页面失败", color="red")
+            messagebox.showerror("错误", f"跳转到规则页面失败：\n\n{e}")
+    
     def playwright_operation_loop(self):
         self.log("[Playwright] Playwright操作线程已启动")
         self.root.after(0, self.bring_to_front)
@@ -379,19 +445,23 @@ class LoginGUI:
                         _, username, password = operation
                         self.run_login_verification(username, password)
                     elif op_type == 'navigate':
-                        _, game_url, game_name = operation
-                        self.log(f"[Playwright] 执行导航: {game_name}")
+                        _, game_url, game_id, game_name = operation
+                        self.log(f"[Playwright] 执行导航: {game_id} - {game_name}")
                         
                         if self.page_handler.navigate(game_url):
-                            self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_name}", color="green"))
+                            if 'rules' in game_url:
+                                self.root.after(0, lambda: self.update_status(f"已跳转到规则页面: {game_id} - {game_name}", color="green"))
+                            else:
+                                self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_id} - {game_name}", color="green"))
+                                self.root.after(0, lambda: self.rules_button.config(state=tk.NORMAL))
                             self.root.after(0, self.bring_to_front)
-                            self.log(f"[成功] 成功跳转到赛事页面")
+                            self.log(f"[成功] 成功跳转到页面")
                         else:
-                            error_msg = "无法跳转到赛事页面"
+                            error_msg = "无法跳转到页面"
                             if not self.page_handler:
                                 error_msg = "浏览器未启动，请先登录"
                             self.root.after(0, lambda: self.update_status("跳转失败", color="red"))
-                            self.log("[错误] 无法跳转到赛事页面")
+                            self.log("[错误] 无法跳转到页面")
                             self.root.after(0, lambda: messagebox.showerror("错误", error_msg))
                     else:
                         self.log(f"[警告] 未知的操作类型: {op_type}")
