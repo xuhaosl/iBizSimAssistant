@@ -22,8 +22,8 @@ class LoginGUI:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("iBizSim 助手")
-        self.root.geometry("800x600")
-        self.root.resizable(False, False)
+        self.root.state('zoomed')
+        self.root.resizable(True, True)
         
         self.username = tk.StringVar()
         self.password = tk.StringVar()
@@ -204,6 +204,15 @@ class LoginGUI:
         self.password_entry.config(show="" if show else "*")
         self.log(f"[密码] 密码显示模式: {'可见' if show else '隐藏'}")
     
+    def bring_to_front(self):
+        try:
+            self.root.lift()
+            self.root.focus_force()
+            self.root.attributes('-topmost', True)
+            self.root.after(100, lambda: self.root.attributes('-topmost', False))
+        except Exception as e:
+            self.log(f"[错误] 无法提升界面: {e}")
+    
     def show_log_dialog(self):
         log_window = tk.Toplevel(self.root)
         log_window.title("日志")
@@ -346,6 +355,7 @@ class LoginGUI:
     
     def playwright_operation_loop(self):
         self.log("[Playwright] Playwright操作线程已启动")
+        self.root.after(0, self.bring_to_front)
         while self.playwright_running:
             if self.playwright_queue:
                 operation = self.playwright_queue.pop(0)
@@ -361,6 +371,7 @@ class LoginGUI:
                         
                         if self.page_handler.navigate(game_url):
                             self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_name}", color="green"))
+                            self.root.after(0, self.bring_to_front)
                             self.log(f"[成功] 成功跳转到赛事页面")
                         else:
                             error_msg = "无法跳转到赛事页面"
@@ -457,6 +468,7 @@ class LoginGUI:
                 return
             
             self.log("[浏览器] 浏览器启动成功")
+            self.root.after(0, self.bring_to_front)
             
             page = self.browser_manager.get_page()
             if not page:
@@ -468,11 +480,11 @@ class LoginGUI:
                 self.root.after(0, lambda: self.stop_button.config(state=tk.DISABLED))
                 return
             
-            self.page_handler = PageHandler(page)
+            self.page_handler = PageHandler(page, on_navigate=self.bring_to_front)
             self.settings.username = username
             self.settings.password = password
             
-            self.login_handler = LoginHandler(self.page_handler, self.settings)
+            self.login_handler = LoginHandler(self.page_handler, self.settings, on_navigate=self.bring_to_front)
             self.log("[登录] 初始化登录处理器")
             
             self.update_status("正在登录...", color="blue")
@@ -487,16 +499,20 @@ class LoginGUI:
                 self.log(f"[状态] 已登录: {self.login_handler.is_authenticated()}")
                 self.log(f"[页面] 当前页面: {page.url}")
                 
+                self.root.after(0, self.bring_to_front)
+                
                 self.update_status("正在导航到赛事列表页面...", color="blue")
                 self.log("[赛事] 导航到mygames页面...")
                 
                 mygames_url = "https://www.ibizsim.cn/games/mygames"
                 if self.page_handler.navigate(mygames_url):
                     self.log("[赛事] 成功导航到赛事列表页面")
+                    self.root.after(0, self.bring_to_front)
                     self.update_status("正在加载赛事列表...", color="blue")
                     self.log("[赛事] 开始加载赛事列表...")
                     
                     self.load_games()
+                    self.root.after(0, self.bring_to_front)
                 else:
                     self.log("[错误] 无法导航到赛事列表页面")
                     self.update_status("导航到赛事列表失败", color="red")

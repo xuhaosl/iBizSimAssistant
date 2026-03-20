@@ -1,18 +1,21 @@
 from playwright.sync_api import Page, Locator
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Callable
 from src.utils.logger import get_logger
 
 
 class PageHandler:
-    def __init__(self, page: Page):
+    def __init__(self, page: Page, on_navigate: Optional[Callable] = None):
         self.page = page
         self.logger = get_logger()
+        self.on_navigate = on_navigate
     
     def navigate(self, url: str, wait_until: str = "networkidle") -> bool:
         try:
             self.logger.info(f"Navigating to: {url}")
             self.page.goto(url, wait_until=wait_until)
             self.logger.info("Navigation completed")
+            if self.on_navigate:
+                self.on_navigate()
             return True
         except Exception as e:
             self.logger.error(f"Failed to navigate to {url}: {e}")

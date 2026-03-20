@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Callable
 from src.browser.page_handler import PageHandler
 from src.config.settings import Settings
 from src.utils.logger import get_logger
@@ -6,11 +6,12 @@ from src.utils.retry import retry
 
 
 class LoginHandler:
-    def __init__(self, page_handler: PageHandler, settings: Settings):
+    def __init__(self, page_handler: PageHandler, settings: Settings, on_navigate: Optional[Callable] = None):
         self.page_handler = page_handler
         self.settings = settings
         self.logger = get_logger()
         self.is_logged_in = False
+        self.on_navigate = on_navigate
     
     @retry(max_attempts=3, delay=2.0, exceptions=(Exception,))
     def login(self) -> bool:
@@ -22,6 +23,9 @@ class LoginHandler:
             if not self.page_handler.navigate(login_url):
                 self.logger.error("Failed to navigate to login page")
                 return False
+            
+            if self.on_navigate:
+                self.on_navigate()
             
             username_selector = self.settings.login.get('username_selector')
             password_selector = self.settings.login.get('password_selector')

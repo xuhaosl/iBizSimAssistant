@@ -19,7 +19,10 @@ class BrowserManager:
         try:
             self.logger.info("Starting browser...")
             self.playwright = sync_playwright().start()
-            self.browser = self.playwright.chromium.launch(headless=self.headless)
+            self.browser = self.playwright.chromium.launch(
+                headless=self.headless,
+                args=['--start-minimized', '--no-first-run', '--no-default-browser-check', '--disable-blink-features=AutomationControlled']
+            )
             self.context = self.browser.new_context()
             self.context.set_default_timeout(self.timeout)
             self.page = self.context.new_page()
