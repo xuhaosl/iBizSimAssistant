@@ -150,17 +150,24 @@ class LoginGUI:
         games_frame = ttk.LabelFrame(column1, text="我参加的赛事", padding="10")
         games_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
         
+        games_listbox_frame = ttk.Frame(games_frame)
+        games_listbox_frame.pack(fill=tk.BOTH, expand=True)
+        
         self.games_listbox = tk.Listbox(
-            games_frame,
+            games_listbox_frame,
             height=15,
             font=("Microsoft YaHei UI", 10),
             selectmode=tk.SINGLE
         )
-        self.games_listbox.pack(fill=tk.BOTH, expand=True)
+        self.games_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        scrollbar = ttk.Scrollbar(self.games_listbox, orient=tk.VERTICAL, command=self.games_listbox.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.games_listbox.config(yscrollcommand=scrollbar.set)
+        v_scrollbar = ttk.Scrollbar(games_listbox_frame, orient=tk.VERTICAL, command=self.games_listbox.yview)
+        v_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.games_listbox.config(yscrollcommand=v_scrollbar.set)
+        
+        h_scrollbar = ttk.Scrollbar(games_frame, orient=tk.HORIZONTAL, command=self.games_listbox.xview)
+        h_scrollbar.pack(fill=tk.X, pady=(5, 0))
+        self.games_listbox.config(xscrollcommand=h_scrollbar.set)
         
         enter_game_button = ttk.Button(
             games_frame,
@@ -249,8 +256,8 @@ class LoginGUI:
         )
         rules_table.heading("col1", text="参数")
         rules_table.heading("col2", text="值")
-        rules_table.column("col1", width=150, anchor=tk.W)
-        rules_table.column("col2", width=150, anchor=tk.W)
+        rules_table.column("col1", width=120, anchor=tk.W)
+        rules_table.column("col2", width=180, anchor=tk.W)
         rules_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         # 添加固定参数行
@@ -279,13 +286,13 @@ class LoginGUI:
             "税收比例",
             "减税比例",
             "资金有效性",
-            "本期利润权重",
-            "市场份额权重",
-            "累计分红权重",
-            "累计缴税权重",
-            "净资产权重",
-            "人均利润率权重",
-            "资本利润率权重"
+            "本期利润",
+            "市场份额",
+            "累计分红",
+            "累计缴税",
+            "净资产",
+            "人均利润率",
+            "资本利润率"
         ]
         
         for param in parameters:
@@ -349,11 +356,54 @@ class LoginGUI:
             self.log(f"[文件] 已选择文件: {file_path}")
             
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                self.rules_text.delete("1.0", tk.END)
-                self.rules_text.insert(tk.END, content)
-                self.log(f"[文件] 已加载文件内容到规则框")
+                file_ext = file_path.lower().split('.')[-1]
+                content = ""
+                
+                if file_ext in ['xlsx', 'xls']:
+                    import openpyxl
+                    wb = openpyxl.load_workbook(file_path, read_only=True)
+                    ws = wb.active
+                    
+                    for row in ws.iter_rows(values_only=True):
+                        if any(cell is not None for cell in row):
+                            row_text = "\t".join(str(cell) if cell is not None else "" for cell in row)
+                            content += row_text + "\n"
+                    
+                    wb.close()
+                    self.rules_text.delete("1.0", tk.END)
+                    self.rules_text.insert(tk.END, content)
+                    self.log(f"[文件] 已加载Excel文件内容到规则框")
+                    
+                elif file_ext == 'txt':
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    self.rules_text.delete("1.0", tk.END)
+                    self.rules_text.insert(tk.END, content)
+                    self.log(f"[文件] 已加载文本文件内容到规则框")
+                    
+                elif file_ext == 'pdf':
+                    self.rules_text.delete("1.0", tk.END)
+                    self.rules_text.insert(tk.END, "PDF文件暂不支持直接读取，请复制文本内容或转换为文本文件。")
+                    self.log(f"[文件] PDF文件暂不支持")
+                    
+                else:
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        self.rules_text.delete("1.0", tk.END)
+                        self.rules_text.insert(tk.END, content)
+                        self.log(f"[文件] 已加载文件内容到规则框")
+                    except UnicodeDecodeError:
+                        try:
+                            with open(file_path, 'r', encoding='gbk') as f:
+                                content = f.read()
+                            self.rules_text.delete("1.0", tk.END)
+                            self.rules_text.insert(tk.END, content)
+                            self.log(f"[文件] 已加载文件内容到规则框（GBK编码）")
+                        except Exception as e:
+                            self.log(f"[错误] 无法读取文件: {e}")
+                            messagebox.showerror("错误", f"无法读取文件：\n\n{e}")
+                            
             except Exception as e:
                 self.log(f"[错误] 读取文件失败: {e}")
                 messagebox.showerror("错误", f"无法读取文件：\n\n{e}")
@@ -622,13 +672,13 @@ class LoginGUI:
                 "税收比例",
                 "减税比例",
                 "资金有效性",
-                "本期利润权重",
-                "市场份额权重",
-                "累计分红权重",
-                "累计缴税权重",
-                "净资产权重",
-                "人均利润率权重",
-                "资本利润率权重"
+                "本期利润",
+                "市场份额",
+                "累计分红",
+                "累计缴税",
+                "净资产",
+                "人均利润率",
+                "资本利润率"
             ]
             
             param_values = {}
@@ -922,7 +972,7 @@ class LoginGUI:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")
-                    elif param == "本期利润权重":
+                    elif param == "本期利润":
                         try:
                             rule_content = page.locator("#rule").inner_text()
                             import re
@@ -935,7 +985,7 @@ class LoginGUI:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")
-                    elif param == "市场份额权重":
+                    elif param == "市场份额":
                         try:
                             rule_content = page.locator("#rule").inner_text()
                             import re
@@ -948,7 +998,7 @@ class LoginGUI:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")
-                    elif param == "累计分红权重":
+                    elif param == "累计分红":
                         try:
                             rule_content = page.locator("#rule").inner_text()
                             import re
@@ -961,7 +1011,7 @@ class LoginGUI:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")
-                    elif param == "累计缴税权重":
+                    elif param == "累计缴税":
                         try:
                             rule_content = page.locator("#rule").inner_text()
                             import re
@@ -974,7 +1024,7 @@ class LoginGUI:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")
-                    elif param == "净资产权重":
+                    elif param == "净资产":
                         try:
                             rule_content = page.locator("#rule").inner_text()
                             import re
@@ -987,7 +1037,7 @@ class LoginGUI:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")
-                    elif param == "人均利润率权重":
+                    elif param == "人均利润率":
                         try:
                             rule_content = page.locator("#rule").inner_text()
                             import re
@@ -1000,7 +1050,7 @@ class LoginGUI:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")
-                    elif param == "资本利润率权重":
+                    elif param == "资本利润率":
                         try:
                             rule_content = page.locator("#rule").inner_text()
                             import re

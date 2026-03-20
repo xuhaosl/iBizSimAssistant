@@ -1,20 +1,23 @@
 # iBizSimAssistant
 
-一个功能强大的网页自动化助手，用于网页数据提取和Excel集成。
+iBizSim 助手 - 一个功能完整的图形界面工具，用于 iBizSim 网站的登录、赛事管理和参数提取。
 
 ## 功能特性
 
-- **自动登录**: 使用账号密码自动登录指定网页
-- **数据提取**: 从网页提取文本、属性、表格等多种类型的数据
-- **Excel集成**: 将提取的数据写入本地Excel表格
-- **数据提交**: 从本地Excel读取数据并提交到网页表单
-- **灵活配置**: 通过YAML配置文件自定义所有操作
+- **图形界面**: 友好的 Tkinter 图形用户界面
+- **自动登录**: 支持账号密码自动登录 iBizSim 网站
+- **赛事管理**: 自动加载和管理用户的赛事列表
+- **参数提取**: 从规则页面自动提取32个比赛参数
+- **Excel集成**: 支持读取和显示Excel文件内容
+- **灵活配置**: 通过YAML配置文件自定义网站选择器
 - **日志记录**: 详细的日志记录便于调试和监控
+- **双向滚动**: 赛事列表支持水平和垂直滚动
 
 ## 技术栈
 
 - **Python 3.8+**
 - **Playwright**: 网页自动化框架
+- **Tkinter**: 图形用户界面
 - **openpyxl**: Excel文件操作
 - **PyYAML**: 配置文件解析
 - **python-dotenv**: 环境变量管理
@@ -30,7 +33,7 @@
 
 1. 克隆仓库:
 ```bash
-git clone https://github.com/yourusername/iBizSimAssistant.git
+git clone https://github.com/xuhaosl/iBizSimAssistant.git
 cd iBizSimAssistant
 ```
 
@@ -51,9 +54,87 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
+## 使用方法
+
+### 启动图形界面
+
+```bash
+python -m src.main
+```
+
+或者在 Windows 上双击 `启动验证工具.bat` 文件。
+
+### 主要功能
+
+#### 1. 登录功能
+
+- 输入用户名和密码
+- 支持密码显示/隐藏切换
+- 自动启动浏览器进行登录
+- 实时状态显示
+
+#### 2. 赛事管理
+
+- 自动加载用户参加的赛事列表
+- 显示赛事ID、名称、日期、状态等信息
+- 支持进入比赛页面
+- 支持跳转到规则页面
+
+#### 3. 参数提取
+
+从规则页面自动提取以下32个参数：
+
+**基础参数**:
+- 当期可运输比例
+- 公司总数
+- 公司序号
+
+**成本参数**:
+- 原材料库存费用
+- 购机费用
+- 原材料固定运费
+- 原材料变动运费
+- 原材料可用比例
+- 维修费
+
+**人力资源参数**:
+- 新员工培训费
+- 安置费
+- 基本工资
+- 一加特殊工资
+- 二班正班工资
+- 二加特殊工资
+
+**财务参数**:
+- 废品系数
+- 最高工资系数
+- 最低资金额度
+- 贷款利息
+- 国债利息
+- 债券利息
+- 税收比例
+- 减税比例
+- 资金有效性
+
+**评分权重参数**:
+- 本期利润
+- 市场份额
+- 累计分红
+- 累计缴税
+- 净资产
+- 人均利润率
+- 资本利润率
+
+#### 4. 文件读取
+
+- 支持 Excel 文件（.xlsx, .xls）
+- 支持文本文件（.txt）
+- 自动识别文件类型
+- 表格内容格式化显示
+
 ## 配置
 
-### 1. 环境变量配置
+### 环境变量配置
 
 复制 `.env.example` 文件为 `.env`:
 ```bash
@@ -66,22 +147,22 @@ USERNAME=your_username
 PASSWORD=your_password
 ```
 
-### 2. 应用配置
+### 应用配置
 
 编辑 `src/config/config.yaml` 文件，根据您的需求配置:
 
 ```yaml
 website:
-  base_url: "https://example.com"
+  base_url: "https://www.ibizsim.cn/main"
   login_url: "/login"
   target_pages:
-    - "/data-page"
-    - "/form-page"
+    - "/index"
+    - "/decision"
 
 login:
-  username_selector: "#username"
-  password_selector: "#password"
-  submit_selector: "#login-btn"
+  username_selector: 'input[name="name"]'
+  password_selector: 'input[name="password"]'
+  submit_selector: 'input[type="submit"]'
   success_indicator: ".user-profile"
 
 excel:
@@ -94,70 +175,11 @@ extraction:
     selector: ".data-field1"
     type: "text"
     target_cell: "A1"
-  - name: "data_field2"
-    selector: ".data-field2"
-    type: "text"
-    target_cell: "B1"
-
-submission:
-  - excel_cell: "A2"
-    selector: "#form-field1"
-    type: "text"
-  - excel_cell: "B2"
-    selector: "#form-field2"
-    type: "text"
-  submit_selector: "#submit-btn"
 
 browser:
   headless: false
   timeout: 30000
   screenshot_on_error: true
-```
-
-## 使用方法
-
-### 命令行参数
-
-```bash
-python src/main.py [选项]
-```
-
-#### 选项说明
-
-- `--config, -c`: 指定配置文件路径（默认: src/config/config.yaml）
-- `--mode, -m`: 操作模式
-  - `full`: 完整工作流程（登录、提取数据、写入Excel）
-  - `extract`: 仅提取数据并写入Excel
-  - `submit`: 仅从Excel读取数据并提交到网页
-- `--page, -p`: 目标页面URL路径
-
-### 使用示例
-
-#### 1. 完整工作流程
-
-执行所有步骤: 登录、提取数据、写入Excel:
-```bash
-python src/main.py --mode full
-```
-
-#### 2. 仅提取数据
-
-登录并从指定页面提取数据，然后写入Excel:
-```bash
-python src/main.py --mode extract --page "/data-page"
-```
-
-#### 3. 仅提交数据
-
-登录并从Excel读取数据，然后提交到指定页面:
-```bash
-python src/main.py --mode submit --page "/form-page"
-```
-
-#### 4. 使用自定义配置文件
-
-```bash
-python src/main.py --config /path/to/custom_config.yaml --mode full
 ```
 
 ## 项目结构
@@ -166,7 +188,7 @@ python src/main.py --config /path/to/custom_config.yaml --mode full
 iBizSimAssistant/
 ├── src/
 │   ├── __init__.py
-│   ├── main.py                 # 程序入口
+│   ├── main.py                 # 图形界面主程序
 │   ├── config/
 │   │   ├── __init__.py
 │   │   ├── settings.py         # 配置加载
@@ -181,6 +203,7 @@ iBizSimAssistant/
 │   ├── data/
 │   │   ├── __init__.py
 │   │   ├── extractor.py        # 数据提取
+│   │   ├── game_extractor.py   # 赛事数据提取
 │   │   └── processor.py        # 数据处理
 │   ├── excel/
 │   │   ├── __init__.py
@@ -189,60 +212,60 @@ iBizSimAssistant/
 │   └── utils/
 │       ├── __init__.py
 │       ├── logger.py           # 日志工具
+│       ├── performance.py       # 性能优化
+│       ├── retry.py           # 重试机制
 │       └── validators.py       # 数据验证
 ├── tests/
 │   ├── __init__.py
 │   ├── test_login.py
 │   ├── test_extraction.py
-│   └── test_excel.py
+│   ├── test_excel.py
+│   └── test_config.py
 ├── logs/                      # 日志文件目录
 ├── data/                      # 数据文件目录
 ├── .env                       # 环境变量（敏感信息）
 ├── .gitignore
 ├── requirements.txt            # Python依赖
 ├── setup.py                   # 安装脚本
+├── 启动验证工具.bat            # Windows快速启动脚本
 └── README.md
 ```
+
+## 界面布局
+
+### 三栏布局
+
+**第一栏** (1:1:1):
+- 登录信息（用户名、密码、显示密码复选框）
+- 登录/停止/清空按钮
+- 状态显示
+- 赛事列表（支持水平和垂直滚动）
+- 进入比赛/复制规则按钮
+- 查看日志/退出按钮
+
+**第二栏** (1:1:1):
+- 文件选择（文件地址、打开按钮）
+- 规则详情（参数表格 + 显示框）
+  - 参数表格：32行×2列（参数、值）
+  - 显示框：显示规则页面内容
+
+**第三栏** (1:1:1):
+- 待用区域
 
 ## 配置说明
 
 ### 网站配置 (website)
-
 - `base_url`: 网站基础URL
 - `login_url`: 登录页面路径
 - `target_pages`: 需要处理的目标页面列表
 
 ### 登录配置 (login)
-
 - `username_selector`: 用户名输入框的CSS选择器
 - `password_selector`: 密码输入框的CSS选择器
 - `submit_selector`: 登录按钮的CSS选择器
 - `success_indicator`: 登录成功后的页面元素选择器
 
-### Excel配置 (excel)
-
-- `input_file`: 输入Excel文件路径
-- `output_file`: 输出Excel文件路径
-- `sheet_name`: 工作表名称
-
-### 数据提取配置 (extraction)
-
-每个提取字段包含:
-- `name`: 字段名称
-- `selector`: 元素CSS选择器
-- `type`: 数据类型（text、attribute、table、list）
-- `target_cell`: 目标Excel单元格
-
-### 数据提交配置 (submission)
-
-每个提交字段包含:
-- `excel_cell`: Excel单元格引用
-- `selector`: 网页表单元素选择器
-- `type`: 数据类型
-- `submit_selector`: 提交按钮选择器
-
 ### 浏览器配置 (browser)
-
 - `headless`: 是否使用无头模式（true/false）
 - `timeout`: 默认超时时间（毫秒）
 - `screenshot_on_error`: 错误时是否截图（true/false）
@@ -270,25 +293,25 @@ iBizSimAssistant/
 - 查看日志文件了解详细错误信息
 - 尝试将 `browser.headless` 设置为 `false` 以观察浏览器行为
 
-### 2. 数据提取失败
+### 2. 参数提取失败
 
-**问题**: 无法提取网页数据
+**问题**: 无法从规则页面提取参数
 
 **解决方案**:
-- 确认页面已完全加载
-- 检查元素选择器是否正确
-- 使用浏览器开发者工具验证选择器
-- 增加超时时间
+- 确认已成功跳转到规则页面
+- 检查规则页面是否完全加载
+- 查看日志文件了解具体哪个参数提取失败
+- 某些参数可能需要手动填写
 
-### 3. Excel读写错误
+### 3. Excel文件读取失败
 
-**问题**: 无法读写Excel文件
+**问题**: 无法读取Excel文件
 
 **解决方案**:
 - 确认Excel文件路径正确
 - 检查文件是否被其他程序占用
 - 确保有文件读写权限
-- 确认工作表名称正确
+- 确认文件格式为.xlsx或.xls
 
 ### 4. Playwright浏览器未安装
 
@@ -317,6 +340,7 @@ pytest tests/
 2. **使用强密码**: 在 `.env` 中使用强密码
 3. **定期更新依赖**: 保持依赖包为最新版本
 4. **限制文件权限**: 确保配置文件和日志文件有适当的访问权限
+5. **注意日志安全**: 不要在日志中记录敏感信息
 
 ## 贡献
 
@@ -345,9 +369,13 @@ pytest tests/
 
 ## 更新日志
 
-### 0.1.0 (2024-03-19)
-- 初始版本发布
-- 实现基本登录功能
-- 实现数据提取功能
-- 实现Excel读写功能
-- 实现数据提交功能
+### 1.0.0 (2025-03-20)
+- 实现完整的图形界面
+- 实现iBizSim网站登录功能
+- 实现赛事列表加载和管理
+- 实现32个参数的自动提取
+- 实现Excel文件读取支持
+- 实现双向滚动赛事列表
+- 实现规则详情表格显示
+- 优化用户界面布局和交互
+- 添加详细的日志记录系统
