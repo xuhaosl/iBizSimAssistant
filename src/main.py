@@ -921,6 +921,97 @@ class LoginGUI:
                             else:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "本期利润权重":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"各项指标的权重分别为[：:]\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "市场份额权重":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"各项指标的权重分别为[：:]\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(2)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "累计分红权重":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"各项指标的权重分别为[：:]\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(3)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "累计缴税权重":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"各项指标的权重分别为[：:]\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(4)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "净资产权重":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"各项指标的权重分别为[：:]\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(5)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "人均利润率权重":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"各项指标的权重分别为[：:]\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(6)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "资本利润率权重":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"各项指标的权重分别为[：:]\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)\s*,\s*([\d\.]+)"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(7)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")                                  
                     else:
                         selectors = [
