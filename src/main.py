@@ -269,7 +269,7 @@ class LoginGUI:
             "基本工资",
             "一加特殊工资",
             "二班正班工资",
-            "二加工资",
+            "二加特殊工资",
             "废品系数",
             "最高工资系数",
             "最低资金额度",
@@ -279,13 +279,13 @@ class LoginGUI:
             "税收比例",
             "减税比例",
             "资金有效性",
-            "本期利润",
-            "市场份额",
-            "累计分红",
-            "累计缴税",
-            "净资产",
-            "人均利润率",
-            "资本利润率"
+            "本期利润权重",
+            "市场份额权重",
+            "累计分红权重",
+            "累计缴税权重",
+            "净资产权重",
+            "人均利润率权重",
+            "资本利润率权重"
         ]
         
         for param in parameters:
@@ -612,7 +612,7 @@ class LoginGUI:
                 "基本工资",
                 "一加特殊工资",
                 "二班正班工资",
-                "二加工资",
+                "二加特殊工资",
                 "废品系数",
                 "最高工资系数",
                 "最低资金额度",
@@ -622,13 +622,13 @@ class LoginGUI:
                 "税收比例",
                 "减税比例",
                 "资金有效性",
-                "本期利润",
-                "市场份额",
-                "累计分红",
-                "累计缴税",
-                "净资产",
-                "人均利润率",
-                "资本利润率"
+                "本期利润权重",
+                "市场份额权重",
+                "累计分红权重",
+                "累计缴税权重",
+                "净资产权重",
+                "人均利润率权重",
+                "资本利润率权重"
             ]
             
             param_values = {}
@@ -718,6 +718,210 @@ class LoginGUI:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "维修费":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"维修费为(\d+\.?\d*)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                raw_value = match.group(1)
+                                if '.' in raw_value:
+                                    raw_value = raw_value.split('.')[0]
+                                value = raw_value.replace(',', '')
+                                self.log(f"[参数] 找到 '{param}' 的值: {value} (原始: {match.group(1)})")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "新员工培训费":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"培训费为(\d+\.?\d*)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                raw_value = match.group(1)
+                                if '.' in raw_value:
+                                    raw_value = raw_value.split('.')[0]
+                                value = raw_value.replace(',', '')
+                                self.log(f"[参数] 找到 '{param}' 的值: {value} (原始: {match.group(1)})")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "安置费":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"安置费(\d+\.?\d*)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                raw_value = match.group(1)
+                                if '.' in raw_value:
+                                    raw_value = raw_value.split('.')[0]
+                                value = raw_value.replace(',', '')
+                                self.log(f"[参数] 找到 '{param}' 的值: {value} (原始: {match.group(1)})")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}") 
+                    elif param == "基本工资":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"第一班正班：(\d+\.?\d*)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                raw_value = match.group(1)
+                                if '.' in raw_value:
+                                    raw_value = raw_value.split('.')[0]
+                                value = raw_value.replace(',', '')
+                                self.log(f"[参数] 找到 '{param}' 的值: {value} (原始: {match.group(1)})")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "一加特殊工资":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"第一班加班：(\d+\.?\d*)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                raw_value = match.group(1)
+                                if '.' in raw_value:
+                                    raw_value = raw_value.split('.')[0]
+                                value = raw_value.replace(',', '')
+                                self.log(f"[参数] 找到 '{param}' 的值: {value} (原始: {match.group(1)})")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "二班正班工资":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"第二班正班：(\d+\.?\d*)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                raw_value = match.group(1)
+                                if '.' in raw_value:
+                                    raw_value = raw_value.split('.')[0]
+                                value = raw_value.replace(',', '')
+                                self.log(f"[参数] 找到 '{param}' 的值: {value} (原始: {match.group(1)})")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "二加特殊工资":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"第二班加班：(\d+\.?\d*)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                raw_value = match.group(1)
+                                if '.' in raw_value:
+                                    raw_value = raw_value.split('.')[0]
+                                value = raw_value.replace(',', '')
+                                self.log(f"[参数] 找到 '{param}' 的值: {value} (原始: {match.group(1)})")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "最低资金额度":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"至少应有([\d,\.]+)元"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                raw_value = match.group(1)
+                                value = raw_value.replace(',', '')
+                                self.log(f"[参数] 找到 '{param}' 的值: {value} (原始: {raw_value})")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "贷款利息":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"银行贷款的本利在本期末偿还，年利率为(\d+\.?\d*%)（"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "国债利息":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"公司每期都可以买国债，年利率为(\d+\.?\d*%)。"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "债券利息":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"债券的年利率为(\d+\.?\d*%)。"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "税收比例":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"净收益的(\d+\.?\d*%)，"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "减税比例":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"亏损额的(\d+\.?\d*%)在"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "资金有效性":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"分红按(\d+\.?\d*%)的"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")                                  
                     else:
                         selectors = [
                             f"#rule//*[contains(text(), '{param}')]/following-sibling::*[1]",
