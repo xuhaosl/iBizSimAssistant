@@ -204,8 +204,13 @@ class LoginGUI:
     def clear_inputs(self):
         self.username.set("")
         self.password.set("")
-        self.update_status("已清空输入框")
-        self.log("[操作] 清空了输入框")
+        
+        self.games_listbox.delete(0, tk.END)
+        self.games = []
+        self.enter_game_button.config(state=tk.DISABLED)
+        
+        self.update_status("已清空输入框和赛事列表")
+        self.log("[操作] 清空了输入框和赛事列表")
     
     def toggle_password_visibility(self):
         show = self.show_password.get()
@@ -399,7 +404,7 @@ class LoginGUI:
                 import time
                 time.sleep(0.1)
         
-        self.log("[Playwright] Playwright操作线程已退出")
+        self.root.after(0, lambda: self.log("[Playwright] Playwright操作线程已退出"))
     
     def start_verification(self):
         if self.is_running:
@@ -499,7 +504,9 @@ class LoginGUI:
             self.log("[登录] 导航到登录页面")
             self.log("[登录] 填写用户名和密码")
             
+            self.log(f"[调试] 开始调用登录处理器...")
             login_success = self.login_handler.login()
+            self.log(f"[调试] 登录处理器返回值: {login_success}")
             
             if login_success:
                 self.update_status("登录成功！", color="green")
@@ -525,14 +532,17 @@ class LoginGUI:
                     self.log("[错误] 无法导航到赛事列表页面")
                     self.update_status("导航到赛事列表失败", color="red")
             else:
-                self.update_status("登录失败", color="red")
+                self.log("[调试] 进入登录失败分支")
+                self.root.after(0, lambda: self.update_status("登录失败！请检查用户名和密码", color="red"))
                 self.log("[失败] 登录验证失败")
                 self.log("[原因] 可能是用户名或密码错误")
                 
-                messagebox.showerror(
-                    "验证失败",
-                    "登录验证失败！\n\n可能的原因：\n1. 用户名或密码错误\n2. 网站选择器配置错误\n3. 网络连接问题\n\n请查看日志了解详细信息。"
-                )
+                self.root.after(0, lambda: messagebox.showerror(
+                    "登录失败",
+                    "登录验证失败！\n\n可能的原因：\n1. 用户名或密码错误\n2. 网站选择器配置错误\n3. 网络连接问题\n4. 验证码输入错误\n\n请检查输入信息后重试，或点击\"查看日志\"按钮查看详细错误信息。"
+                ))
+                
+                self.is_running = False
                 
         except Exception as e:
             self.update_status(f"发生错误: {str(e)}", color="red")
@@ -555,11 +565,11 @@ class LoginGUI:
             self.login_handler = None
     
     def on_closing(self):
-        if self.is_running:
-            if messagebox.askyesno("确认", "验证正在进行中，确定要退出吗？"):
+        if messagebox.askyesno("确认退出", "确定要退出 iBizSim 助手吗？"):
+            self.cleanup_browser()
+            if self.is_running:
                 self.stop_verification()
-        self.cleanup_browser()
-        self.root.destroy()
+            self.root.destroy()
     
     def run(self):
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)

@@ -13,12 +13,12 @@ class LoginHandler:
         self.is_logged_in = False
         self.on_navigate = on_navigate
     
-    @retry(max_attempts=3, delay=2.0, exceptions=(Exception,))
     def login(self) -> bool:
         try:
             self.logger.info("Starting login process...")
             
             login_url = self.settings.get_full_url(self.settings.website.get('login_url'))
+            self.logger.info(f"Login URL: {login_url}")
             
             if not self.page_handler.navigate(login_url):
                 self.logger.error("Failed to navigate to login page")
@@ -31,10 +31,13 @@ class LoginHandler:
             password_selector = self.settings.login.get('password_selector')
             submit_selector = self.settings.login.get('submit_selector')
             
+            self.logger.info(f"Selectors - Username: {username_selector}, Password: {password_selector}, Submit: {submit_selector}")
+            
             if not all([username_selector, password_selector, submit_selector]):
                 self.logger.error("Missing login selectors in configuration")
                 return False
             
+            self.logger.info("Waiting for username field...")
             if not self.page_handler.wait_for_element(username_selector):
                 self.logger.error(f"Username field not found: {username_selector}")
                 return False
@@ -42,18 +45,23 @@ class LoginHandler:
             username = self.settings.username
             password = self.settings.password
             
+            self.logger.info(f"Username: {username}, Password: {'*' * len(password)}")
+            
             if not username or not password:
-                self.logger.error("Username or password not provided in environment variables")
+                self.logger.error("Username or password not provided")
                 return False
             
+            self.logger.info("Filling username...")
             if not self.page_handler.fill(username_selector, username):
                 self.logger.error("Failed to fill username")
                 return False
             
+            self.logger.info("Filling password...")
             if not self.page_handler.fill(password_selector, password):
                 self.logger.error("Failed to fill password")
                 return False
             
+            self.logger.info("Clicking submit button...")
             if not self.page_handler.click(submit_selector):
                 self.logger.error("Failed to click submit button")
                 return False
@@ -61,7 +69,10 @@ class LoginHandler:
             self.logger.info("Login form submitted")
             
             success_indicator = self.settings.login.get('success_indicator')
+            self.logger.info(f"Success indicator: {success_indicator}")
+            
             if success_indicator:
+                self.logger.info("Waiting for success indicator...")
                 if self.page_handler.wait_for_element(success_indicator, timeout=10000):
                     self.logger.info("Login successful - success indicator found")
                     self.is_logged_in = True
