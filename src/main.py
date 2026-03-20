@@ -91,7 +91,7 @@ class LoginGUI:
         password_entry = ttk.Entry(
             input_frame,
             textvariable=self.password,
-            width=25,
+            width=18,
             font=("Microsoft YaHei UI", 10),
             show=""
         )
@@ -105,10 +105,10 @@ class LoginGUI:
             variable=self.show_password,
             command=self.toggle_password_visibility
         )
-        show_password_check.grid(row=2, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
+        show_password_check.grid(row=1, column=2, sticky=tk.W, padx=(5, 0), pady=5)
         
         button_frame = ttk.Frame(input_frame)
-        button_frame.grid(row=3, column=0, columnspan=2, pady=(10, 0))
+        button_frame.grid(row=2, column=0, columnspan=3, pady=(10, 0))
         
         login_button = ttk.Button(
             button_frame,
@@ -139,13 +139,13 @@ class LoginGUI:
         status_frame = ttk.LabelFrame(column1, text="状态", padding="10")
         status_frame.pack(fill=tk.X, pady=(10, 0))
         
-        status_label = ttk.Label(
+        status_entry = ttk.Entry(
             status_frame,
             textvariable=self.status,
             font=("Microsoft YaHei UI", 10),
-            wraplength=300
+            state='readonly'
         )
-        status_label.pack(fill=tk.X)
+        status_entry.pack(fill=tk.X)
         
         games_frame = ttk.LabelFrame(column1, text="我参加的赛事", padding="10")
         games_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
@@ -200,31 +200,105 @@ class LoginGUI:
         file_frame = ttk.LabelFrame(column2, text="文件选择", padding="10")
         file_frame.pack(fill=tk.X, pady=(0, 10))
         
-        ttk.Label(file_frame, text="文件地址:").pack(anchor=tk.W, padx=5, pady=5)
+        file_row_frame = ttk.Frame(file_frame)
+        file_row_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        ttk.Label(file_row_frame, text="文件地址:").pack(side=tk.LEFT, padx=(0, 5))
         
         file_path_var = tk.StringVar()
         file_entry = ttk.Entry(
-            file_frame,
+            file_row_frame,
             textvariable=file_path_var,
             font=("Microsoft YaHei UI", 10)
         )
-        file_entry.pack(fill=tk.X, padx=5, pady=(0, 5))
+        file_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
         
         open_button = ttk.Button(
-            file_frame,
+            file_row_frame,
             text="打开",
             command=lambda: self.open_file(file_path_var),
-            width=15
+            width=10
         )
-        open_button.pack(anchor=tk.W, padx=5, pady=(0, 5))
+        open_button.pack(side=tk.LEFT)
         
         self.file_path_var = file_path_var
         
-        rules_frame = ttk.LabelFrame(column2, text="规则框", padding="10")
+        rules_frame = ttk.LabelFrame(column2, text="规则详情", padding="10")
         rules_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
         
+        rules_split_frame = ttk.Frame(rules_frame)
+        rules_split_frame.pack(fill=tk.BOTH, expand=True)
+        
+        rules_split_frame.columnconfigure(0, weight=3)
+        rules_split_frame.columnconfigure(1, weight=1)
+        
+        rules_left_frame = ttk.Frame(rules_split_frame)
+        rules_left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
+        
+        rules_right_frame = ttk.Frame(rules_split_frame)
+        rules_right_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
+        
+        rules_table_frame = ttk.Frame(rules_left_frame)
+        rules_table_frame.pack(fill=tk.BOTH, expand=True)
+        
+        rules_table = ttk.Treeview(
+            rules_table_frame,
+            columns=("col1", "col2"),
+            show="headings",
+            height=30
+        )
+        rules_table.heading("col1", text="参数")
+        rules_table.heading("col2", text="值")
+        rules_table.column("col1", width=150, anchor=tk.W)
+        rules_table.column("col2", width=150, anchor=tk.W)
+        rules_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # 添加固定参数行
+        parameters = [
+            "当期可运输比例",
+            "公司总数",
+            "公司序号",
+            "原材料库存费用",
+            "购机费用",
+            "原材料固定运费",
+            "原材料变动运费",
+            "原材料可用比例",
+            "维修费",
+            "新员工培训费",
+            "安置费",
+            "基本工资",
+            "一加特殊工资",
+            "二班正班工资",
+            "二加工资",
+            "废品系数",
+            "最高工资系数",
+            "最低资金额度",
+            "贷款利息",
+            "国债利息",
+            "债券利息",
+            "税收比例",
+            "减税比例",
+            "资金有效性",
+            "本期利润",
+            "市场份额",
+            "累计分红",
+            "累计缴税",
+            "净资产",
+            "人均利润率",
+            "资本利润率"
+        ]
+        
+        for param in parameters:
+            rules_table.insert("", tk.END, values=(param, ""))
+        
+        table_scrollbar = ttk.Scrollbar(rules_table_frame, orient=tk.VERTICAL, command=rules_table.yview)
+        table_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        rules_table.config(yscrollcommand=table_scrollbar.set)
+        
+        self.rules_table = rules_table
+        
         self.rules_text = scrolledtext.ScrolledText(
-            rules_frame,
+            rules_right_frame,
             font=("Microsoft YaHei UI", 10),
             wrap=tk.WORD
         )
