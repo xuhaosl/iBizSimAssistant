@@ -684,33 +684,18 @@ class LoginGUI:
             file_ext = self.excel_file_path.lower().split('.')[-1]
             keep_vba = (file_ext == 'xlsm')
             
-            max_retries = 3
-            wb = None
-            for attempt in range(max_retries):
-                try:
-                    wb = openpyxl.load_workbook(self.excel_file_path, keep_vba=keep_vba)
-                    self.log(f"[导入] 成功打开Excel文件 (尝试 {attempt + 1}/{max_retries})")
-                    break
-                except PermissionError as e:
-                    self.log(f"[导入] 文件权限错误 (尝试 {attempt + 1}/{max_retries}): {e}")
-                    if attempt < max_retries - 1:
-                        import time
-                        time.sleep(0.5)
-                        continue
-                    else:
-                        messagebox.showerror("错误", f"无法打开Excel文件：\n\n文件可能正在被其他程序使用，请关闭后重试。\n\n错误详情：{e}")
-                        self.log(f"[导入] 无法打开Excel文件: {e}")
-                        self.update_status("导入规则到Excel失败", color="red")
-                        return
-                except Exception as e:
-                    self.log(f"[导入] 打开Excel文件失败 (尝试 {attempt + 1}/{max_retries}): {e}")
-                    if attempt == max_retries - 1:
-                        messagebox.showerror("错误", f"打开Excel文件失败：\n\n{e}")
-                        self.log(f"[导入] 打开Excel文件失败: {e}")
-                        self.update_status("导入规则到Excel失败", color="red")
-                        return
-            
-            if not wb:
+            try:
+                wb = openpyxl.load_workbook(self.excel_file_path, keep_vba=keep_vba)
+                self.log(f"[导入] 成功打开Excel文件")
+            except PermissionError as e:
+                self.log(f"[导入] 文件权限错误: {e}")
+                messagebox.showerror("错误", f"无法打开Excel文件：\n\n文件可能正在被其他程序使用，请关闭该文件后重试。")
+                self.update_status("导入规则到Excel失败", color="red")
+                return
+            except Exception as e:
+                self.log(f"[导入] 打开Excel文件失败: {e}")
+                messagebox.showerror("错误", f"打开Excel文件失败：\n\n{e}")
+                self.update_status("导入规则到Excel失败", color="red")
                 return
             
             ws = None
@@ -840,6 +825,16 @@ class LoginGUI:
             self.update_status(f"已导入 {import_count} 个参数值到Excel", color="green")
             self.log(f"[导入] 成功导入 {import_count} 个参数值到Excel文件")
             messagebox.showinfo("成功", f"已成功导入 {import_count} 个参数值到Excel文件")
+            
+            try:
+                import os
+                os.startfile(self.excel_file_path)
+                self.log(f"[文件] 已用系统默认程序打开: {self.excel_file_path}")
+                
+                self.root.focus_force()
+                self.root.after(500, self.root.focus_set)
+            except Exception as e:
+                self.log(f"[文件] 用系统程序打开失败: {e}")
             
         except Exception as e:
             self.log(f"[错误] 导入规则到Excel失败: {e}")
