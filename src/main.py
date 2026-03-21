@@ -1303,6 +1303,22 @@ class LoginGUI:
                                 self.root.after(0, lambda: self.import_button.config(state=tk.NORMAL))
                                 self.root.after(0, lambda: self.extract_button.config(state=tk.NORMAL))
                                 self.root.after(0, lambda: self.paste_button.config(state=tk.NORMAL))
+                                
+                                try:
+                                    page = self.page_handler.get_page()
+                                    if page:
+                                        import re
+                                        page_content = page.content()
+                                        pattern = r"您代表的公司是(.*?)。"
+                                        match = re.search(pattern, page_content)
+                                        if match:
+                                            team_name = match.group(1).strip()
+                                            self.log(f"[队伍] 检测到队伍名称为：{team_name}")
+                                        else:
+                                            self.log(f"[队伍] 未检测到队伍名称")
+                                except Exception as e:
+                                    self.log(f"[队伍] 提取队伍名称失败: {e}")
+                                    
                             self.root.after(0, self.bring_to_front)
                             self.log(f"[成功] 成功跳转到页面")
                         else:
