@@ -288,7 +288,7 @@ class LoginGUI:
         )
         rules_table.heading("col1", text="参数")
         rules_table.heading("col2", text="值")
-        rules_table.column("col1", width=60, anchor=tk.W)
+        rules_table.column("col1", width=100, anchor=tk.W)
         rules_table.column("col2", width=90, anchor=tk.W)
         rules_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
@@ -443,6 +443,11 @@ class LoginGUI:
         
         self.update_status("已清空输入框和赛事列表")
         self.log("[操作] 清空了输入框和赛事列表")
+    
+    def clear_rules_table(self):
+        for item in self.rules_table.get_children():
+            self.rules_table.delete(item)
+        self.log("[操作] 清空了规则详情表格")
     
     def toggle_password_visibility(self):
         show = self.show_password.get()
@@ -1338,12 +1343,16 @@ class LoginGUI:
                             if 'rules' in game_url:
                                 self.root.after(0, lambda: self.update_status(f"已跳转到规则页面: {game_id} - {game_name}", color="green"))
                                 self.playwright_queue.append(('extract_params',))
-                            else:
-                                self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_id} - {game_name}", color="green"))
-                                self.root.after(0, lambda: self.copy_button.config(state=tk.NORMAL))
                                 self.root.after(0, lambda: self.import_button.config(state=tk.NORMAL))
                                 self.root.after(0, lambda: self.extract_button.config(state=tk.NORMAL))
                                 self.root.after(0, lambda: self.paste_button.config(state=tk.NORMAL))
+                            else:
+                                self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_id} - {game_name}", color="green"))
+                                self.root.after(0, lambda: self.copy_button.config(state=tk.NORMAL))
+                                self.root.after(0, lambda: self.import_button.config(state=tk.DISABLED))
+                                self.root.after(0, lambda: self.extract_button.config(state=tk.DISABLED))
+                                self.root.after(0, lambda: self.paste_button.config(state=tk.DISABLED))
+                                self.root.after(0, self.clear_rules_table)
                                 
                                 try:
                                     page = self.page_handler.get_page()
