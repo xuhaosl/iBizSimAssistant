@@ -409,6 +409,24 @@ class LoginGUI:
                     wb.close()
                     self.log(f"[文件] 已加载Excel文件: {file_path}")
                     
+                    has_rules = False
+                    for item in self.rules_table.get_children():
+                        item_values = self.rules_table.item(item, "values")
+                        if item_values and len(item_values) > 1 and item_values[1]:
+                            has_rules = True
+                            break
+                    
+                    if has_rules:
+                        self.import_button.config(state=tk.NORMAL)
+                        self.extract_button.config(state=tk.NORMAL)
+                        self.paste_button.config(state=tk.NORMAL)
+                        self.log(f"[文件] 规则已复制，已启用导入、提取和粘贴按钮")
+                    else:
+                        self.import_button.config(state=tk.DISABLED)
+                        self.extract_button.config(state=tk.DISABLED)
+                        self.paste_button.config(state=tk.DISABLED)
+                        self.log(f"[文件] 规则未复制，按钮保持禁用状态")
+                    
                 else:
                     messagebox.showerror("文件格式错误", f"不支持的文件格式: {file_ext}\n\n仅支持Excel文件格式：\n- XLSX\n- XLS\n- XLSM\n- XLSB\n- CSV")
                     self.log(f"[错误] 不支持的文件格式: {file_ext}")
@@ -660,6 +678,7 @@ class LoginGUI:
                 return
             
             self.log(f"[导入] 开始导入规则到Excel文件: {self.excel_file_path}")
+            self.update_status("正在导入规则到Excel...", color="blue")
             
             import openpyxl
             file_ext = self.excel_file_path.lower().split('.')[-1]
@@ -730,7 +749,14 @@ class LoginGUI:
                 "债券利息",
                 "税收比例",
                 "减税比例",
-                "资金有效性"
+                "资金有效性",
+                "本期利润",
+                "市场份额",
+                "累计分红",
+                "累计缴税",
+                "净资产",
+                "人均利润率",
+                "资本利润率"
             ]
             
             import_count = 0
@@ -791,6 +817,20 @@ class LoginGUI:
                         ws['B26'] = value
                     elif param == "资金有效性":
                         ws['B27'] = value
+                    elif param == "本期利润":
+                        ws['B30'] = value
+                    elif param == "市场份额":
+                        ws['B31'] = value
+                    elif param == "累计分红":
+                        ws['B32'] = value
+                    elif param == "累计缴税":
+                        ws['B33'] = value
+                    elif param == "净资产":
+                        ws['B34'] = value
+                    elif param == "人均利润率":
+                        ws['B35'] = value
+                    elif param == "资本利润率":
+                        ws['B36'] = value
                     import_count += 1
                     self.log(f"[导入] 已导入 '{param}' 的值: {value}")
             
@@ -1416,161 +1456,6 @@ class LoginGUI:
             self.log(f"[错误] 提取规则参数失败: {e}")
             self.update_status("提取参数失败", color="red")
     
-    def import_rules_to_excel(self, param_values):
-        try:
-            import_count = len([v for v in param_values.values() if v])
-            self.log(f"[导入] 检查到 {import_count} 个参数值")
-            
-            if import_count < 31:
-                messagebox.showwarning("提示", f"规则提取不完整，只提取了 {import_count} 个参数值，请先复制规则")
-                self.log(f"[导入] 规则提取不完整，只有 {import_count} 个参数")
-                return
-            
-            if not self.excel_file_path:
-                messagebox.showwarning("提示", "请先打开Excel文件")
-                self.log(f"[导入] 未打开Excel文件")
-                return
-            
-            self.log(f"[导入] 开始导入规则到Excel文件: {self.excel_file_path}")
-            
-            import openpyxl
-            file_ext = self.excel_file_path.lower().split('.')[-1]
-            keep_vba = (file_ext == 'xlsm')
-            
-            max_retries = 3
-            wb = None
-            for attempt in range(max_retries):
-                try:
-                    wb = openpyxl.load_workbook(self.excel_file_path, keep_vba=keep_vba)
-                    self.log(f"[导入] 成功打开Excel文件 (尝试 {attempt + 1}/{max_retries})")
-                    break
-                except PermissionError as e:
-                    self.log(f"[导入] 文件权限错误 (尝试 {attempt + 1}/{max_retries}): {e}")
-                    if attempt < max_retries - 1:
-                        import time
-                        time.sleep(0.5)
-                        continue
-                    else:
-                        messagebox.showerror("错误", f"无法打开Excel文件：\n\n文件可能正在被其他程序使用，请关闭后重试。\n\n错误详情：{e}")
-                        self.log(f"[导入] 无法打开Excel文件: {e}")
-                        return
-                except Exception as e:
-                    self.log(f"[导入] 打开Excel文件失败 (尝试 {attempt + 1}/{max_retries}): {e}")
-                    if attempt == max_retries - 1:
-                        messagebox.showerror("错误", f"打开Excel文件失败：\n\n{e}")
-                        self.log(f"[导入] 打开Excel文件失败: {e}")
-                        return
-            
-            if not wb:
-                return
-            
-            ws = None
-            for sheet in wb.sheetnames:
-                if "初始化表" in sheet:
-                    ws = wb[sheet]
-                    break
-            
-            if not ws:
-                messagebox.showerror("错误", "Excel文件中未找到'初始化表'工作表")
-                self.log(f"[导入] 未找到'初始化表'工作表")
-                wb.close()
-                return
-            
-            parameters_to_import = [
-                "当期可运输比例",
-                "公司总数",
-                "公司序号",
-                "原材料库存费用",
-                "购机费用",
-                "原材料固定运费",
-                "原材料变动运费",
-                "原材料可用比例",
-                "维修费",
-                "新员工培训费",
-                "安置费",
-                "基本工资",
-                "一加特殊工资",
-                "二班正班工资",
-                "二加特殊工资",
-                "废品系数",
-                "最高工资系数",
-                "最低资金额度",
-                "贷款利息",
-                "国债利息",
-                "债券利息",
-                "税收比例",
-                "减税比例",
-                "资金有效性"
-            ]
-            
-            import_count = 0
-            for param in parameters_to_import:
-                if param in param_values:
-                    value = param_values[param]
-                    if value:
-                        if param == "当期可运输比例":
-                            ws['B4'] = value
-                        elif param == "公司总数":
-                            ws['B5'] = value
-                        elif param == "公司序号":
-                            ws['B6'] = value
-                        elif param == "原材料库存费用":
-                            ws['B7'] = value
-                        elif param == "购机费用":
-                            ws['B8'] = value
-                        elif param == "原材料固定运费":
-                            ws['B9'] = value
-                        elif param == "原材料变动运费":
-                            ws['B10'] = value
-                        elif param == "原材料可用比例":
-                            ws['B11'] = value
-                        elif param == "维修费":
-                            ws['B12'] = value
-                        elif param == "新员工培训费":
-                            ws['B13'] = value
-                        elif param == "安置费":
-                            ws['B14'] = value
-                        elif param == "基本工资":
-                            ws['B15'] = value
-                        elif param == "一加特殊工资":
-                            ws['B16'] = value
-                        elif param == "二班正班工资":
-                            ws['B17'] = value
-                        elif param == "二加特殊工资":
-                            ws['B18'] = value
-                        elif param == "废品系数":
-                            ws['B19'] = value
-                        elif param == "最高工资系数":
-                            ws['B20'] = value
-                        elif param == "最低资金额度":
-                            ws['B21'] = value
-                        elif param == "贷款利息":
-                            ws['B22'] = value
-                        elif param == "国债利息":
-                            ws['B23'] = value
-                        elif param == "债券利息":
-                            ws['B24'] = value
-                        elif param == "税收比例":
-                            ws['B25'] = value
-                        elif param == "减税比例":
-                            ws['B26'] = value
-                        elif param == "资金有效性":
-                            ws['B27'] = value
-                        import_count += 1
-                        self.log(f"[导入] 已导入 '{param}' 的值: {value} 到 {ws.cell(row=4, column=2).coordinate}")
-            
-            wb.save(self.excel_file_path)
-            wb.close()
-            
-            self.update_status(f"已导入 {import_count} 个参数值到Excel", color="green")
-            self.log(f"[导入] 成功导入 {import_count} 个参数值到Excel文件")
-            messagebox.showinfo("成功", f"已成功导入 {import_count} 个参数值到Excel文件")
-            
-        except Exception as e:
-            self.log(f"[错误] 导入规则到Excel失败: {e}")
-            self.update_status("导入规则到Excel失败", color="red")
-            messagebox.showerror("错误", f"导入规则到Excel失败：\n\n{e}")
-    
     def playwright_operation_loop(self):
         self.log("[Playwright] Playwright操作线程已启动")
         self.root.after(0, self.bring_to_front)
@@ -1591,9 +1476,6 @@ class LoginGUI:
                             if 'rules' in game_url:
                                 self.root.after(0, lambda: self.update_status(f"已跳转到规则页面: {game_id} - {game_name}", color="green"))
                                 self.playwright_queue.append(('extract_params',))
-                                self.root.after(0, lambda: self.import_button.config(state=tk.NORMAL))
-                                self.root.after(0, lambda: self.extract_button.config(state=tk.NORMAL))
-                                self.root.after(0, lambda: self.paste_button.config(state=tk.NORMAL))
                             else:
                                 self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_id} - {game_name}", color="green"))
                                 self.root.after(0, lambda: self.copy_button.config(state=tk.NORMAL))
@@ -1630,9 +1512,7 @@ class LoginGUI:
                             self.root.after(0, lambda: messagebox.showerror("错误", error_msg))
                     elif op_type == 'extract_params':
                         param_values = self.extract_rules_parameters_in_thread()
-                        self.playwright_queue.append(('import_rules', param_values))
-                    elif op_type == 'import_rules':
-                        self.import_rules_to_excel(operation[1])
+                        self.root.after(0, lambda: self.update_status("规则提取完成，请打开Excel文件后点击导入规则", color="green"))
                     elif op_type == 'stop':
                         self.log("[Playwright] 执行停止操作")
                         self.cleanup_browser()
