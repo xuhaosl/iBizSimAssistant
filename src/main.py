@@ -60,7 +60,7 @@ class LoginGUI:
             font=("Microsoft YaHei UI", 16, "bold"),
             foreground="#2c3e50"
         )
-        title_label.pack(pady=(0, 20))
+        title_label.pack(pady=(0, 5))
         
         columns_frame = ttk.Frame(main_frame)
         columns_frame.pack(fill=tk.BOTH, expand=True)
@@ -151,14 +151,14 @@ class LoginGUI:
         status_entry.pack(fill=tk.X)
         
         games_frame = ttk.LabelFrame(column1, text="我参加的赛事", padding="10")
-        games_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
+        games_frame.pack(fill=tk.BOTH, expand=False, pady=(10, 0))
         
         games_listbox_frame = ttk.Frame(games_frame)
         games_listbox_frame.pack(fill=tk.BOTH, expand=True)
         
         self.games_listbox = tk.Listbox(
             games_listbox_frame,
-            height=15,
+            height=21,
             font=("Microsoft YaHei UI", 10),
             selectmode=tk.SINGLE
         )
@@ -290,7 +290,7 @@ class LoginGUI:
         )
         rules_table.heading("col1", text="参数")
         rules_table.heading("col2", text="值")
-        rules_table.column("col1", width=100, anchor=tk.W)
+        rules_table.column("col1", width=100, anchor=tk.CENTER)
         rules_table.column("col2", width=90, anchor=tk.W)
         rules_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
@@ -338,12 +338,219 @@ class LoginGUI:
         
         self.rules_table = rules_table
         
-        self.rules_text = scrolledtext.ScrolledText(
-            rules_right_frame,
-            font=("Microsoft YaHei UI", 10),
-            wrap=tk.WORD
+        product_table_frame = ttk.Frame(rules_right_frame)
+        product_table_frame.pack(fill=tk.BOTH, expand=False)
+        
+        product_table = ttk.Treeview(
+            product_table_frame,
+            columns=("col1", "col2", "col3", "col4", "col5"),
+            show="headings",
+            height=4
         )
-        self.rules_text.pack(fill=tk.BOTH, expand=True)
+        product_table.heading("col1", text="")
+        product_table.heading("col2", text="成品库存费")
+        product_table.heading("col3", text="")
+        product_table.heading("col4", text="一正管理费")
+        product_table.heading("col5", text="二正管理费")
+        product_table.column("col1", width=80, anchor=tk.CENTER)
+        product_table.column("col2", width=100, anchor=tk.CENTER)
+        product_table.column("col3", width=100, anchor=tk.CENTER)
+        product_table.column("col4", width=100, anchor=tk.CENTER)
+        product_table.column("col5", width=100, anchor=tk.CENTER)
+        product_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        products = ["产品1", "产品2", "产品3", "产品4"]
+        for product in products:
+            product_table.insert("", tk.END, values=(product, "", product, "", ""))
+        
+        self.product_table = product_table
+        
+        conversion_table_frame = ttk.Frame(rules_right_frame)
+        conversion_table_frame.pack(fill=tk.BOTH, expand=False)
+        
+        conversion_table = ttk.Treeview(
+            conversion_table_frame,
+            columns=("col1", "col2", "col3", "col4", "col5"),
+            show="headings",
+            height=4
+        )
+        conversion_table.heading("col1", text="订货转化比例")
+        conversion_table.heading("col2", text="产品1")
+        conversion_table.heading("col3", text="产品2")
+        conversion_table.heading("col4", text="产品3")
+        conversion_table.heading("col5", text="产品4")
+        conversion_table.column("col1", width=100, anchor=tk.CENTER)
+        conversion_table.column("col2", width=100, anchor=tk.CENTER)
+        conversion_table.column("col3", width=100, anchor=tk.CENTER)
+        conversion_table.column("col4", width=100, anchor=tk.CENTER)
+        conversion_table.column("col5", width=100, anchor=tk.CENTER)
+        conversion_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        markets = ["市场1", "市场2", "市场3", "市场4"]
+        for market in markets:
+            conversion_table.insert("", tk.END, values=(market, "", "", "", ""))
+        
+        self.conversion_table = conversion_table
+        
+        production_table_frame = ttk.Frame(rules_right_frame)
+        production_table_frame.pack(fill=tk.BOTH, expand=False)
+        
+        production_table = ttk.Treeview(
+            production_table_frame,
+            columns=("col1", "col2", "col3", "col4", "col5"),
+            show="headings",
+            height=3
+        )
+        production_table.heading("col1", text="产品生产消耗")
+        production_table.heading("col2", text="产品1")
+        production_table.heading("col3", text="产品2")
+        production_table.heading("col4", text="产品3")
+        production_table.heading("col5", text="产品4")
+        production_table.column("col1", width=120, anchor=tk.CENTER)
+        production_table.column("col2", width=100, anchor=tk.CENTER)
+        production_table.column("col3", width=100, anchor=tk.CENTER)
+        production_table.column("col4", width=100, anchor=tk.CENTER)
+        production_table.column("col5", width=100, anchor=tk.CENTER)
+        production_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        production_items = ["机器（时）", "人力（时）", "原材料"]
+        for item in production_items:
+            production_table.insert("", tk.END, values=(item, "", "", "", ""))
+        
+        self.production_table = production_table
+        
+        grade_table_frame = ttk.Frame(rules_right_frame)
+        grade_table_frame.pack(fill=tk.BOTH, expand=False)
+        
+        grade_table = ttk.Treeview(
+            grade_table_frame,
+            columns=("col1", "col2", "col3", "col4", "col5", "col6"),
+            show="headings",
+            height=4
+        )
+        grade_table.heading("col1", text="研发投入")
+        grade_table.heading("col2", text="等级1")
+        grade_table.heading("col3", text="等级2")
+        grade_table.heading("col4", text="等级3")
+        grade_table.heading("col5", text="等级4")
+        grade_table.heading("col6", text="等级5")
+        grade_table.column("col1", width=80, anchor=tk.CENTER)
+        grade_table.column("col2", width=80, anchor=tk.CENTER)
+        grade_table.column("col3", width=80, anchor=tk.CENTER)
+        grade_table.column("col4", width=80, anchor=tk.CENTER)
+        grade_table.column("col5", width=80, anchor=tk.CENTER)
+        grade_table.column("col6", width=80, anchor=tk.CENTER)
+        grade_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        products = ["产品1", "产品2", "产品3", "产品4"]
+        for product in products:
+            grade_table.insert("", tk.END, values=(product, "", "", "", "", ""))
+        
+        self.grade_table = grade_table
+        
+        shipping_table_frame = ttk.Frame(rules_right_frame)
+        shipping_table_frame.pack(fill=tk.BOTH, expand=False)
+        
+        shipping_table = ttk.Treeview(
+            shipping_table_frame,
+            columns=("col1", "col2", "col3", "col4", "col5"),
+            show="headings",
+            height=2
+        )
+        shipping_table.heading("col1", text="固定运费")
+        shipping_table.heading("col2", text="市场11")
+        shipping_table.heading("col3", text="市场12")
+        shipping_table.heading("col4", text="市场13")
+        shipping_table.heading("col5", text="市场14")
+        shipping_table.column("col1", width=100, anchor=tk.CENTER)
+        shipping_table.column("col2", width=100, anchor=tk.CENTER)
+        shipping_table.column("col3", width=100, anchor=tk.CENTER)
+        shipping_table.column("col4", width=100, anchor=tk.CENTER)
+        shipping_table.column("col5", width=100, anchor=tk.CENTER)
+        shipping_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        shipping_products = ["产品12", "产品34"]
+        for product in shipping_products:
+            shipping_table.insert("", tk.END, values=(product, "", "", "", ""))
+        
+        self.shipping_table = shipping_table
+        
+        shipping_table2_frame = ttk.Frame(rules_right_frame)
+        shipping_table2_frame.pack(fill=tk.BOTH, expand=False)
+        
+        shipping_table2 = ttk.Treeview(
+            shipping_table2_frame,
+            columns=("col1", "col2", "col3", "col4", "col5"),
+            show="headings",
+            height=2
+        )
+        shipping_table2.heading("col1", text="固定运费")
+        shipping_table2.heading("col2", text="市场21")
+        shipping_table2.heading("col3", text="市场22")
+        shipping_table2.heading("col4", text="市场23")
+        shipping_table2.heading("col5", text="市场24")
+        shipping_table2.column("col1", width=100, anchor=tk.CENTER)
+        shipping_table2.column("col2", width=100, anchor=tk.CENTER)
+        shipping_table2.column("col3", width=100, anchor=tk.CENTER)
+        shipping_table2.column("col4", width=100, anchor=tk.CENTER)
+        shipping_table2.column("col5", width=100, anchor=tk.CENTER)
+        shipping_table2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        shipping_products2 = ["产品12", "产品34"]
+        for product in shipping_products2:
+            shipping_table2.insert("", tk.END, values=(product, "", "", "", ""))
+        
+        self.shipping_table2 = shipping_table2
+        
+        shipping_table3_frame = ttk.Frame(rules_right_frame)
+        shipping_table3_frame.pack(fill=tk.BOTH, expand=False)
+        
+        shipping_table3 = ttk.Treeview(
+            shipping_table3_frame,
+            columns=("col1", "col2", "col3", "col4", "col5"),
+            show="headings",
+            height=2
+        )
+        shipping_table3.heading("col1", text="变动运费")
+        shipping_table3.heading("col2", text="市场31")
+        shipping_table3.heading("col3", text="市场32")
+        shipping_table3.heading("col4", text="市场33")
+        shipping_table3.heading("col5", text="市场34")
+        shipping_table3.column("col1", width=100, anchor=tk.CENTER)
+        shipping_table3.column("col2", width=100, anchor=tk.CENTER)
+        shipping_table3.column("col3", width=100, anchor=tk.CENTER)
+        shipping_table3.column("col4", width=100, anchor=tk.CENTER)
+        shipping_table3.column("col5", width=100, anchor=tk.CENTER)
+        shipping_table3.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        shipping_products3 = ["产品12", "产品34"]
+        for product in shipping_products3:
+            shipping_table3.insert("", tk.END, values=(product, "", "", "", ""))
+        
+        self.shipping_table3 = shipping_table3
+        
+        discount_table_frame = ttk.Frame(rules_right_frame)
+        discount_table_frame.pack(fill=tk.BOTH, expand=True)
+        
+        discount_table = ttk.Treeview(
+            discount_table_frame,
+            columns=("col1", "col2", "col3", "col4"),
+            show="headings",
+            height=1
+        )
+        discount_table.heading("col1", text=" ")
+        discount_table.heading("col2", text=" ")
+        discount_table.heading("col3", text=" ")
+        discount_table.heading("col4", text=" ")
+        discount_table.column("col1", width=100, anchor=tk.CENTER)
+        discount_table.column("col2", width=100, anchor=tk.CENTER)
+        discount_table.column("col3", width=100, anchor=tk.CENTER)
+        discount_table.column("col4", width=100, anchor=tk.CENTER)
+        discount_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        discount_table.insert("", tk.END, values=("原料折扣", "", "", ""))
+        
+        self.discount_table = discount_table
         
         standby_frame = ttk.LabelFrame(column3, text="待用", padding="10")
         standby_frame.pack(fill=tk.BOTH, expand=True)
