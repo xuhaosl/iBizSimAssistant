@@ -177,14 +177,6 @@ class LoginGUI:
         )
         enter_game_button.pack(fill=tk.X, pady=(5, 0))
         
-        rules_button = ttk.Button(
-            games_frame,
-            text="复制规则",
-            command=self.copy_rules,
-            state=tk.DISABLED
-        )
-        rules_button.pack(fill=tk.X, pady=(5, 0))
-        
         log_button_frame = ttk.Frame(column1)
         log_button_frame.pack(fill=tk.X, pady=(10, 0))
         
@@ -233,6 +225,45 @@ class LoginGUI:
         rules_frame = ttk.LabelFrame(column2, text="规则详情", padding="10")
         rules_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
         
+        rules_button_frame = ttk.Frame(rules_frame)
+        rules_button_frame.pack(fill=tk.X, pady=(0, 5))
+        
+        copy_button = ttk.Button(
+            rules_button_frame,
+            text="复制规则",
+            command=self.copy_rules,
+            state=tk.DISABLED,
+            width=10
+        )
+        copy_button.pack(side=tk.LEFT, padx=(0, 2))
+        
+        import_button = ttk.Button(
+            rules_button_frame,
+            text="导入规则",
+            command=self.import_rules,
+            state=tk.DISABLED,
+            width=10
+        )
+        import_button.pack(side=tk.LEFT, padx=2)
+        
+        extract_button = ttk.Button(
+            rules_button_frame,
+            text="提取前八期正品率",
+            command=self.extract_quality_rates,
+            state=tk.DISABLED,
+            width=15
+        )
+        extract_button.pack(side=tk.LEFT, padx=2)
+        
+        paste_button = ttk.Button(
+            rules_button_frame,
+            text="粘贴初期报表",
+            command=self.paste_initial_report,
+            state=tk.DISABLED,
+            width=12
+        )
+        paste_button.pack(side=tk.LEFT, padx=(2, 0))
+        
         rules_split_frame = ttk.Frame(rules_frame)
         rules_split_frame.pack(fill=tk.BOTH, expand=True)
         
@@ -256,8 +287,8 @@ class LoginGUI:
         )
         rules_table.heading("col1", text="参数")
         rules_table.heading("col2", text="值")
-        rules_table.column("col1", width=120, anchor=tk.W)
-        rules_table.column("col2", width=180, anchor=tk.W)
+        rules_table.column("col1", width=60, anchor=tk.W)
+        rules_table.column("col2", width=90, anchor=tk.W)
         rules_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         # 添加固定参数行
@@ -325,7 +356,10 @@ class LoginGUI:
         self.login_button = login_button
         self.stop_button = stop_button
         self.enter_game_button = enter_game_button
-        self.rules_button = rules_button
+        self.copy_button = copy_button
+        self.import_button = import_button
+        self.extract_button = extract_button
+        self.paste_button = paste_button
         
         self.log_text = scrolledtext.ScrolledText(
             None,
@@ -345,10 +379,8 @@ class LoginGUI:
         file_path = filedialog.askopenfilename(
             title="选择文件",
             filetypes=[
-                ("所有文件", "*.*"),
-                ("文本文件", "*.txt"),
-                ("Excel文件", "*.xlsx;*.xls"),
-                ("PDF文件", "*.pdf")
+                ("Excel文件", "*.xlsx;*.xls;*.xlsm;*.xlsb;*.csv"),
+                ("所有文件", "*.*")
             ]
         )
         if file_path:
@@ -359,7 +391,7 @@ class LoginGUI:
                 file_ext = file_path.lower().split('.')[-1]
                 content = ""
                 
-                if file_ext in ['xlsx', 'xls']:
+                if file_ext in ['xlsx', 'xls', 'xlsm', 'xlsb', 'csv']:
                     import openpyxl
                     wb = openpyxl.load_workbook(file_path, read_only=True)
                     ws = wb.active
@@ -370,39 +402,23 @@ class LoginGUI:
                             content += row_text + "\n"
                     
                     wb.close()
-                    self.rules_text.delete("1.0", tk.END)
-                    self.rules_text.insert(tk.END, content)
-                    self.log(f"[文件] 已加载Excel文件内容到规则框")
+                    self.log(f"[文件] 已加载Excel文件: {file_path}")
                     
-                elif file_ext == 'txt':
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                    self.rules_text.delete("1.0", tk.END)
-                    self.rules_text.insert(tk.END, content)
-                    self.log(f"[文件] 已加载文本文件内容到规则框")
-                    
-                elif file_ext == 'pdf':
-                    self.rules_text.delete("1.0", tk.END)
-                    self.rules_text.insert(tk.END, "PDF文件暂不支持直接读取，请复制文本内容或转换为文本文件。")
-                    self.log(f"[文件] PDF文件暂不支持")
+                    import os
+                    import subprocess
+                    try:
+                        os.startfile(file_path)
+                        self.log(f"[文件] 已用系统默认程序打开: {file_path}")
+                        
+                        self.root.focus_force()
+                        self.root.after(500, self.root.focus_set)
+                    except Exception as e:
+                        self.log(f"[文件] 用系统程序打开失败: {e}")
                     
                 else:
-                    try:
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            content = f.read()
-                        self.rules_text.delete("1.0", tk.END)
-                        self.rules_text.insert(tk.END, content)
-                        self.log(f"[文件] 已加载文件内容到规则框")
-                    except UnicodeDecodeError:
-                        try:
-                            with open(file_path, 'r', encoding='gbk') as f:
-                                content = f.read()
-                            self.rules_text.delete("1.0", tk.END)
-                            self.rules_text.insert(tk.END, content)
-                            self.log(f"[文件] 已加载文件内容到规则框（GBK编码）")
-                        except Exception as e:
-                            self.log(f"[错误] 无法读取文件: {e}")
-                            messagebox.showerror("错误", f"无法读取文件：\n\n{e}")
+                    messagebox.showerror("文件格式错误", f"不支持的文件格式: {file_ext}\n\n仅支持Excel文件格式：\n- XLSX\n- XLS\n- XLSM\n- XLSB\n- CSV")
+                    self.log(f"[错误] 不支持的文件格式: {file_ext}")
+                    return
                             
             except Exception as e:
                 self.log(f"[错误] 读取文件失败: {e}")
@@ -419,7 +435,10 @@ class LoginGUI:
         self.games_listbox.delete(0, tk.END)
         self.games = []
         self.enter_game_button.config(state=tk.DISABLED)
-        self.rules_button.config(state=tk.DISABLED)
+        self.copy_button.config(state=tk.DISABLED)
+        self.import_button.config(state=tk.DISABLED)
+        self.extract_button.config(state=tk.DISABLED)
+        self.paste_button.config(state=tk.DISABLED)
         
         self.update_status("已清空输入框和赛事列表")
         self.log("[操作] 清空了输入框和赛事列表")
@@ -634,6 +653,97 @@ class LoginGUI:
             self.update_status("跳转到规则页面失败", color="red")
             messagebox.showerror("错误", f"跳转到规则页面失败：\n\n{e}")
     
+    def import_rules(self):
+        try:
+            if not self.page_handler:
+                messagebox.showerror("错误", "浏览器未启动，请先登录")
+                self.update_status("浏览器未启动", color="red")
+                self.log("[错误] page_handler为None")
+                return
+                
+            selection = self.games_listbox.curselection()
+            if not selection:
+                messagebox.showwarning("提示", "请先选择一个赛事")
+                return
+            
+            index = selection[0]
+            if index >= len(self.games):
+                messagebox.showerror("错误", "选择的赛事无效")
+                return
+            
+            game = self.games[index]
+            game_url = game.get('url')
+            
+            if not game_url:
+                messagebox.showerror("错误", "该赛事没有有效的链接")
+                return
+            
+            game_id = game.get('比赛ID', '')
+            game_name = game.get('比赛名称', 'Unknown')
+            
+            rules_url = game_url.replace('/welcome?', '/rules?')
+            
+            self.log(f"[规则] 正在跳转到规则页面: {game_id} - {game_name}")
+            self.log(f"[规则] 原始URL: {game_url}")
+            self.log(f"[规则] 规则URL: {rules_url}")
+            
+            if rules_url.startswith('/'):
+                rules_url = f"https://www.ibizsim.cn{rules_url}"
+            
+            self.log(f"[规则] 转换后URL: {rules_url}")
+            self.update_status(f"正在跳转到规则页面: {game_id} - {game_name}", color="blue")
+            
+            self.playwright_queue.append(('navigate', rules_url, game_id, game_name))
+            self.log(f"[队列] 已添加规则导航请求到Playwright队列")
+            
+            if not self.playwright_thread or not self.playwright_thread.is_alive():
+                self.log(f"[Playwright] 启动Playwright操作线程")
+                self.playwright_running = True
+                self.playwright_thread = threading.Thread(target=self.playwright_operation_loop)
+                self.playwright_thread.daemon = True
+                self.playwright_thread.start()
+                
+        except Exception as e:
+            self.log(f"[错误] 导入规则失败: {e}")
+            self.update_status("导入规则失败", color="red")
+            messagebox.showerror("错误", f"导入规则失败：\n\n{e}")
+    
+    def extract_quality_rates(self):
+        try:
+            if not self.page_handler:
+                messagebox.showerror("错误", "浏览器未启动，请先登录")
+                self.update_status("浏览器未启动", color="red")
+                self.log("[错误] page_handler为None")
+                return
+                
+            self.log("[正品率] 开始提取前八期正品率...")
+            self.update_status("正在提取前八期正品率", color="blue")
+            
+            messagebox.showinfo("提示", "前八期正品率提取功能开发中...")
+            
+        except Exception as e:
+            self.log(f"[错误] 提取前八期正品率失败: {e}")
+            self.update_status("提取前八期正品率失败", color="red")
+            messagebox.showerror("错误", f"提取前八期正品率失败：\n\n{e}")
+    
+    def paste_initial_report(self):
+        try:
+            if not self.page_handler:
+                messagebox.showerror("错误", "浏览器未启动，请先登录")
+                self.update_status("浏览器未启动", color="red")
+                self.log("[错误] page_handler为None")
+                return
+                
+            self.log("[报表] 开始粘贴初期报表...")
+            self.update_status("正在粘贴初期报表", color="blue")
+            
+            messagebox.showinfo("提示", "初期报表粘贴功能开发中...")
+            
+        except Exception as e:
+            self.log(f"[错误] 粘贴初期报表失败: {e}")
+            self.update_status("粘贴初期报表失败", color="red")
+            messagebox.showerror("错误", f"粘贴初期报表失败：\n\n{e}")
+    
     def extract_rules_parameters_in_thread(self):
         try:
             if not self.page_handler:
@@ -768,6 +878,19 @@ class LoginGUI:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "原材料可用比例":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"至多有(\d+\.?\d*%)可以"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                self.log(f"[参数] 未找到 '{param}' 的值")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
                     elif param == "维修费":
                         try:
                             rule_content = page.locator("#rule").inner_text()
@@ -880,6 +1003,36 @@ class LoginGUI:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "废品系数":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"废品系数[为是]?(\d+\.?\d*)"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                value = "1"
+                                self.log(f"[参数] 使用默认值 '{param}' 的值: {value}")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                            value = "1"
+                    elif param == "最高工资系数":
+                        try:
+                            rule_content = page.locator("#rule").inner_text()
+                            import re
+                            pattern = r"最高工资系数[为是]?(\d+\.?\d*)"
+                            match = re.search(pattern, rule_content)
+                            if match:
+                                value = match.group(1)
+                                self.log(f"[参数] 找到 '{param}' 的值: {value}")
+                            else:
+                                value = "1.4"
+                                self.log(f"[参数] 使用默认值 '{param}' 的值: {value}")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                            value = "1.4"
                     elif param == "最低资金额度":
                         try:
                             rule_content = page.locator("#rule").inner_text()
@@ -1146,7 +1299,10 @@ class LoginGUI:
                                 self.playwright_queue.append(('extract_params',))
                             else:
                                 self.root.after(0, lambda: self.update_status(f"已进入赛事: {game_id} - {game_name}", color="green"))
-                                self.root.after(0, lambda: self.rules_button.config(state=tk.NORMAL))
+                                self.root.after(0, lambda: self.copy_button.config(state=tk.NORMAL))
+                                self.root.after(0, lambda: self.import_button.config(state=tk.NORMAL))
+                                self.root.after(0, lambda: self.extract_button.config(state=tk.NORMAL))
+                                self.root.after(0, lambda: self.paste_button.config(state=tk.NORMAL))
                             self.root.after(0, self.bring_to_front)
                             self.log(f"[成功] 成功跳转到页面")
                         else:
