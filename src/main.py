@@ -30,6 +30,7 @@ class LoginGUI:
         self.show_password = tk.BooleanVar(value=True)
         self.status = tk.StringVar(value="准备就绪")
         self.is_running = False
+        self.team_name = ""
         
         self.games = []
         self.selected_game = None
@@ -823,6 +824,46 @@ class LoginGUI:
                                 self.log(f"[参数] 未找到 '{param}' 的值")
                         except Exception as e:
                             self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                    elif param == "公司序号":
+                        try:
+                            if self.team_name:
+                                page_content = page.content()
+                                import re
+                                table_pattern = r'<table[^>]*class="table[^"]*"[^>]*>.*?<tbody>(.*?)</tbody>'
+                                table_match = re.search(table_pattern, page_content, re.DOTALL)
+                                if table_match:
+                                    table_content = table_match.group(1)
+                                    self.log(f"[调试] 表格内容长度: {len(table_content)}")
+                                    
+                                    all_tr_matches = list(re.finditer(r'<tr[^>]*>', table_content))
+                                    self.log(f"[调试] 找到 {len(all_tr_matches)} 个 <tr> 标签")
+                                    
+                                    company_number = 0
+                                    for i, tr_match in enumerate(all_tr_matches):
+                                        tr_start = tr_match.start()
+                                        tr_end = tr_match.end()
+                                        next_tr_start = all_tr_matches[i+1].start() if i+1 < len(all_tr_matches) else len(table_content)
+                                        tr_content = table_content[tr_start:next_tr_start]
+                                        
+                                        if self.team_name in tr_content:
+                                            company_number = i - 1
+                                            self.log(f"[调试] 第{i+1}行包含队伍名称: {self.team_name}")
+                                            self.log(f"[调试] 确定公司序号: {company_number} (跳过前2个表头行)")
+                                            break
+                                    
+                                    if company_number > 0:
+                                        value = str(company_number)
+                                        self.log(f"[参数] 找到 '{param}' 的值: {value} (队伍: {self.team_name})")
+                                    else:
+                                        self.log(f"[参数] 未找到包含队伍 '{self.team_name}' 的行")
+                                else:
+                                    self.log(f"[参数] 未找到规则表格")
+                            else:
+                                self.log(f"[参数] 队伍名称未提取，无法确定公司序号")
+                        except Exception as e:
+                            self.log(f"[参数] 提取 '{param}' 失败: {e}")
+                            import traceback
+                            self.log(f"[调试] 错误详情: {traceback.format_exc()}")
                     elif param == "原材料库存费用":
                         try:
                             rule_content = page.locator("#rule").inner_text()
@@ -1312,12 +1353,14 @@ class LoginGUI:
                                         pattern = r"您代表的公司是(.*?)。"
                                         match = re.search(pattern, page_content)
                                         if match:
-                                            team_name = match.group(1).strip()
-                                            self.log(f"[队伍] 检测到队伍名称为：{team_name}")
+                                            self.team_name = match.group(1).strip()
+                                            self.log(f"[队伍] 检测到队伍名称为：{self.team_name}")
                                         else:
                                             self.log(f"[队伍] 未检测到队伍名称")
+                                            self.team_name = ""
                                 except Exception as e:
                                     self.log(f"[队伍] 提取队伍名称失败: {e}")
+                                    self.team_name = ""
                                     
                             self.root.after(0, self.bring_to_front)
                             self.log(f"[成功] 成功跳转到页面")
