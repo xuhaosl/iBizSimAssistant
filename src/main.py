@@ -446,8 +446,8 @@ class LoginGUI:
     
     def clear_rules_table(self):
         for item in self.rules_table.get_children():
-            self.rules_table.delete(item)
-        self.log("[操作] 清空了规则详情表格")
+            self.rules_table.set(item, "col2", "")
+        self.log("[操作] 清空了规则详情表格的值")
     
     def toggle_password_visibility(self):
         show = self.show_password.get()
@@ -1382,6 +1382,15 @@ class LoginGUI:
                             self.root.after(0, lambda: messagebox.showerror("错误", error_msg))
                     elif op_type == 'extract_params':
                         self.extract_rules_parameters_in_thread()
+                    elif op_type == 'stop':
+                        self.log("[Playwright] 执行停止操作")
+                        self.cleanup_browser()
+                        self.is_running = False
+                        self.playwright_running = False
+                        self.root.after(0, lambda: self.login_button.config(state=tk.NORMAL))
+                        self.root.after(0, lambda: self.stop_button.config(state=tk.DISABLED))
+                        self.root.after(0, self.clear_rules_table)
+                        self.root.after(0, self.clear_inputs)
                     else:
                         self.log(f"[警告] 未知的操作类型: {op_type}")
                         
@@ -1428,16 +1437,10 @@ class LoginGUI:
         if not self.is_running:
             return
         
-        self.is_running = False
-        self.playwright_running = False
-        self.login_button.config(state=tk.NORMAL)
-        self.stop_button.config(state=tk.DISABLED)
-        
         self.update_status("正在停止...", color="orange")
         self.log("[操作] 用户请求停止验证")
         
-        if self.browser_manager:
-            threading.Thread(target=self.cleanup_browser).start()
+        self.playwright_queue.append(('stop',))
     
     def run_login_verification(self, username, password):
         try:
@@ -1532,16 +1535,19 @@ class LoginGUI:
                 ))
                 
                 self.is_running = False
+                self.root.after(0, lambda: self.login_button.config(state=tk.NORMAL))
+                self.root.after(0, lambda: self.stop_button.config(state=tk.DISABLED))
                 
         except Exception as e:
             self.update_status(f"发生错误: {str(e)}", color="red")
             self.log(f"[异常] 测试过程中发生异常: {e}")
             messagebox.showerror("错误", f"发生错误：\n\n{e}")
+            self.is_running = False
         finally:
             if not self.is_running:
                 self.cleanup_browser()
-            self.root.after(0, lambda: self.login_button.config(state=tk.NORMAL))
-            self.root.after(0, lambda: self.stop_button.config(state=tk.DISABLED))
+                self.root.after(0, lambda: self.login_button.config(state=tk.NORMAL))
+                self.root.after(0, lambda: self.stop_button.config(state=tk.DISABLED))
     
     def cleanup_browser(self):
         self.playwright_running = False
