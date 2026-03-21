@@ -225,11 +225,14 @@ class LoginGUI:
         
         self.file_path_var = file_path_var
         
-        rules_frame = ttk.LabelFrame(column2, text="规则详情", padding="10")
-        rules_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
+        notebook = ttk.Notebook(column2)
+        notebook.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
         
-        rules_button_frame = ttk.Frame(rules_frame)
-        rules_button_frame.pack(fill=tk.X, pady=(0, 5))
+        rules_tab = ttk.Frame(notebook)
+        notebook.add(rules_tab, text="规则详情")
+        
+        rules_button_frame = ttk.Frame(rules_tab)
+        rules_button_frame.pack(fill=tk.X, pady=(5, 5))
         
         copy_button = ttk.Button(
             rules_button_frame,
@@ -249,25 +252,7 @@ class LoginGUI:
         )
         import_button.pack(side=tk.LEFT, padx=2)
         
-        extract_button = ttk.Button(
-            rules_button_frame,
-            text="提取前八期正品率",
-            command=self.extract_quality_rates,
-            state=tk.DISABLED,
-            width=15
-        )
-        extract_button.pack(side=tk.LEFT, padx=2)
-        
-        paste_button = ttk.Button(
-            rules_button_frame,
-            text="粘贴初期报表",
-            command=self.paste_initial_report,
-            state=tk.DISABLED,
-            width=12
-        )
-        paste_button.pack(side=tk.LEFT, padx=(2, 0))
-        
-        rules_split_frame = ttk.Frame(rules_frame)
+        rules_split_frame = ttk.Frame(rules_tab)
         rules_split_frame.pack(fill=tk.BOTH, expand=True)
         
         rules_split_frame.columnconfigure(0, weight=3)
@@ -551,6 +536,45 @@ class LoginGUI:
         discount_table.insert("", tk.END, values=("原料折扣", "", "", ""))
         
         self.discount_table = discount_table
+        
+        salary_coefficient_tab = ttk.Frame(notebook)
+        notebook.add(salary_coefficient_tab, text="工资系数")
+        
+        salary_button_frame = ttk.Frame(salary_coefficient_tab)
+        salary_button_frame.pack(fill=tk.X, pady=(5, 5))
+        
+        extract_button = ttk.Button(
+            salary_button_frame,
+            text="提取前八期正品率",
+            command=self.extract_quality_rates,
+            state=tk.DISABLED,
+            width=15
+        )
+        extract_button.pack(side=tk.LEFT)
+        
+        initial_data_tab = ttk.Frame(notebook)
+        notebook.add(initial_data_tab, text="初期数据")
+        
+        initial_button_frame = ttk.Frame(initial_data_tab)
+        initial_button_frame.pack(fill=tk.X, pady=(5, 5))
+        
+        paste_button = ttk.Button(
+            initial_button_frame,
+            text="粘贴初期报表",
+            command=self.paste_initial_report,
+            state=tk.DISABLED,
+            width=12
+        )
+        paste_button.pack(side=tk.LEFT)
+        
+        production_tool_tab = ttk.Frame(notebook)
+        notebook.add(production_tool_tab, text="排产工具")
+        
+        report_download_tab = ttk.Frame(notebook)
+        notebook.add(report_download_tab, text="报表下载")
+        
+        submit_decision_tab = ttk.Frame(notebook)
+        notebook.add(submit_decision_tab, text="提交决策")
         
         standby_frame = ttk.LabelFrame(column3, text="待用", padding="10")
         standby_frame.pack(fill=tk.BOTH, expand=True)
