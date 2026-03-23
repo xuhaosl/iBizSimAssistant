@@ -353,6 +353,34 @@ class LoginGUI:
         
         self.rules_table = rules_table
         
+        discount_frame = ttk.Frame(rules_left_frame)
+        discount_frame.pack(fill=tk.BOTH, expand=False, pady=(10, 0))
+        
+        discount_frame.columnconfigure(0, weight=1)
+        discount_frame.rowconfigure(0, weight=1)
+        
+        discount_table = ttk.Treeview(
+            discount_frame,
+            columns=("col1", "col2"),
+            show="headings",
+            height=3
+        )
+        discount_table.heading("col1", text="")
+        discount_table.heading("col2", text="原材料折扣")
+        discount_table.column("col1", width=90, anchor=tk.CENTER)
+        discount_table.column("col2", width=40, anchor=tk.W)
+        discount_table.grid(row=0, column=0, sticky="nsew")
+        
+        discount_scrollbar = ttk.Scrollbar(discount_frame, orient=tk.VERTICAL, command=discount_table.yview)
+        discount_scrollbar.grid(row=0, column=1, sticky="ns")
+        discount_table.config(yscrollcommand=discount_scrollbar.set)
+        
+        discount_items = ["", "", ""]
+        for item in discount_items:
+            discount_table.insert("", tk.END, values=(item, ""))
+        
+        self.discount_table = discount_table
+        
         product_table_frame = ttk.Frame(rules_right_scrollable_frame)
         product_table_frame.pack(fill=tk.X, expand=False)
         
@@ -2224,51 +2252,453 @@ class LoginGUI:
                             for i, row in enumerate(table_data):
                                 self.log(f"[固定运费12] 第{i+1}行有 {len(row)} 个数字: {row}")
                             
-                            col_numbers = [[], [], [], []]
-                            
-                            for row in table_data:
-                                for col_idx in range(4):
-                                    if col_idx < len(row):
-                                        col_numbers[col_idx].append(row[col_idx])
-                            
-                            self.log(f"[固定运费12] 市场1列数字: {col_numbers[0]}")
-                            self.log(f"[固定运费12] 市场2列数字: {col_numbers[1]}")
-                            self.log(f"[固定运费12] 市场3列数字: {col_numbers[2]}")
-                            self.log(f"[固定运费12] 市场4列数字: {col_numbers[3]}")
-                            
                             shipping_items = self.shipping_table.get_children()
-                            for i, item in enumerate(shipping_items):
-                                current_values = list(self.shipping_table.item(item, "values"))
+                            
+                            if len(table_data) >= 1 and len(shipping_items) >= 2:
+                                row_data = table_data[0]
                                 
-                                if i < len(col_numbers[0]):
-                                    current_values[1] = col_numbers[0][i]
-                                    self.log(f"[固定运费12] 产品{i+1} 市场1: {col_numbers[0][i]}")
+                                product1_item = shipping_items[0]
+                                product1_values = list(self.shipping_table.item(product1_item, "values"))
+                                if len(row_data) >= 1:
+                                    product1_values[1] = row_data[0]
+                                    self.log(f"[固定运费12] 产品1 市场1: {row_data[0]}")
+                                if len(row_data) >= 2:
+                                    product1_values[2] = row_data[1]
+                                    self.log(f"[固定运费12] 产品1 市场2: {row_data[1]}")
+                                if len(row_data) >= 3:
+                                    product1_values[3] = row_data[2]
+                                    self.log(f"[固定运费12] 产品1 市场3: {row_data[2]}")
+                                if len(row_data) >= 4:
+                                    product1_values[4] = row_data[3]
+                                    self.log(f"[固定运费12] 产品1 市场4: {row_data[3]}")
+                                self.shipping_table.item(product1_item, values=product1_values)
                                 
-                                if i < len(col_numbers[1]):
-                                    current_values[2] = col_numbers[1][i]
-                                    self.log(f"[固定运费12] 产品{i+1} 市场2: {col_numbers[1][i]}")
-                                
-                                if i < len(col_numbers[2]):
-                                    current_values[3] = col_numbers[2][i]
-                                    self.log(f"[固定运费12] 产品{i+1} 市场3: {col_numbers[2][i]}")
-                                
-                                if i < len(col_numbers[3]):
-                                    current_values[4] = col_numbers[3][i]
-                                    self.log(f"[固定运费12] 产品{i+1} 市场4: {col_numbers[3][i]}")
-                                
-                                self.shipping_table.item(item, values=current_values)
+                                product2_item = shipping_items[1]
+                                product2_values = list(self.shipping_table.item(product2_item, "values"))
+                                if len(row_data) >= 5:
+                                    product2_values[1] = row_data[4]
+                                    self.log(f"[固定运费12] 产品2 市场1: {row_data[4]}")
+                                if len(row_data) >= 6:
+                                    product2_values[2] = row_data[5]
+                                    self.log(f"[固定运费12] 产品2 市场2: {row_data[5]}")
+                                if len(row_data) >= 7:
+                                    product2_values[3] = row_data[6]
+                                    self.log(f"[固定运费12] 产品2 市场3: {row_data[6]}")
+                                if len(row_data) >= 8:
+                                    product2_values[4] = row_data[7]
+                                    self.log(f"[固定运费12] 产品2 市场4: {row_data[7]}")
+                                self.shipping_table.item(product2_item, values=product2_values)
                             
                             self.log(f"[固定运费12] 固定运费12提取完成")
+                        
                         else:
                             self.log(f"[固定运费12] 未找到任何数字")
-                    else:
-                        self.log(f"[固定运费12] 在目标区域未找到表格")
-                        self.log(f"[调试] 目标区域前500字符: {target_content[:500]}")
-                else:
-                    self.log(f"[固定运费12] 未找到'产品运输固定费用（元）'")
                     
             except Exception as e:
                 self.log(f"[固定运费12] 提取固定运费12失败: {e}")
+                import traceback
+                self.log(f"[调试] 错误详情: {traceback.format_exc()}")
+            
+            try:
+                page_content = page.content()
+                import re
+                
+                self.log(f"[固定运费34] 开始查找固定运费34表格")
+                
+                start_pattern = r'产品运输固定费用（元）'
+                start_match = re.search(start_pattern, page_content)
+                
+                if start_match:
+                    start_pos = start_match.end()
+                    self.log(f"[固定运费34] 找到'产品运输固定费用（元）'，位置: {start_pos}")
+                    
+                    target_content = page_content[start_pos:]
+                    self.log(f"[固定运费34] 从'产品运输固定费用（元）'后的内容长度: {len(target_content)}")
+                    
+                    table_pattern = r'<table[^>]*>.*?<tbody>(.*?)</tbody>'
+                    table_matches = re.findall(table_pattern, target_content, re.DOTALL)
+                    
+                    if len(table_matches) >= 2:
+                        second_table_match = table_matches[1]
+                        tbody_content = second_table_match
+                        self.log(f"[固定运费34] 找到第二张表格，开始提取数字")
+                        
+                        tr_pattern = r'<tr[^>]*>(.*?)</tr>'
+                        tr_matches = re.findall(tr_pattern, tbody_content, re.DOTALL)
+                        
+                        table_data = []
+                        for tr_idx, tr_content in enumerate(tr_matches):
+                            td_pattern = r'<td[^>]*>(.*?)</td>'
+                            td_matches = re.findall(td_pattern, tr_content, re.DOTALL)
+                            
+                            row_numbers = []
+                            for td_content in td_matches:
+                                clean_text = re.sub(r'<[^>]+>', '', td_content)
+                                clean_text = clean_text.strip()
+                                
+                                if clean_text:
+                                    number_pattern = r'^[\d,]+\.?\d*$'
+                                    if re.match(number_pattern, clean_text):
+                                        clean_number = clean_text.replace(',', '')
+                                        try:
+                                            float_num = float(clean_number)
+                                            row_numbers.append(clean_number)
+                                            self.log(f"[固定运费34] 行{tr_idx+1}列{len(row_numbers)} 提取到数字: {clean_number}")
+                                        except ValueError:
+                                            pass
+                            
+                            if row_numbers and tr_idx > 0:
+                                table_data.append(row_numbers)
+                        
+                        if table_data:
+                            self.log(f"[固定运费34] 表格有 {len(table_data)} 行")
+                            for i, row in enumerate(table_data):
+                                self.log(f"[固定运费34] 第{i+1}行有 {len(row)} 个数字: {row}")
+                            
+                            shipping_items = self.shipping_table.get_children()
+                            
+                            if len(table_data) >= 1 and len(shipping_items) >= 4:
+                                row_data = table_data[0]
+                                
+                                product3_item = shipping_items[2]
+                                product3_values = list(self.shipping_table.item(product3_item, "values"))
+                                if len(row_data) >= 1:
+                                    product3_values[1] = row_data[0]
+                                    self.log(f"[固定运费34] 产品3 市场1: {row_data[0]}")
+                                if len(row_data) >= 2:
+                                    product3_values[2] = row_data[1]
+                                    self.log(f"[固定运费34] 产品3 市场2: {row_data[1]}")
+                                if len(row_data) >= 3:
+                                    product3_values[3] = row_data[2]
+                                    self.log(f"[固定运费34] 产品3 市场3: {row_data[2]}")
+                                if len(row_data) >= 4:
+                                    product3_values[4] = row_data[3]
+                                    self.log(f"[固定运费34] 产品3 市场4: {row_data[3]}")
+                                self.shipping_table.item(product3_item, values=product3_values)
+                                
+                                product4_item = shipping_items[3]
+                                product4_values = list(self.shipping_table.item(product4_item, "values"))
+                                if len(row_data) >= 5:
+                                    product4_values[1] = row_data[4]
+                                    self.log(f"[固定运费34] 产品4 市场1: {row_data[4]}")
+                                if len(row_data) >= 6:
+                                    product4_values[2] = row_data[5]
+                                    self.log(f"[固定运费34] 产品4 市场2: {row_data[5]}")
+                                if len(row_data) >= 7:
+                                    product4_values[3] = row_data[6]
+                                    self.log(f"[固定运费34] 产品4 市场3: {row_data[6]}")
+                                if len(row_data) >= 8:
+                                    product4_values[4] = row_data[7]
+                                    self.log(f"[固定运费34] 产品4 市场4: {row_data[7]}")
+                                self.shipping_table.item(product4_item, values=product4_values)
+                            
+                            self.log(f"[固定运费34] 固定运费34提取完成")
+                        else:
+                            self.log(f"[固定运费34] 未找到任何数字")
+                    else:
+                        self.log(f"[固定运费34] 未找到第二张表格")
+                else:
+                    self.log(f"[固定运费34] 未找到'产品运输固定费用（元）'")
+                    
+            except Exception as e:
+                self.log(f"[固定运费34] 提取固定运费34失败: {e}")
+                import traceback
+                self.log(f"[调试] 错误详情: {traceback.format_exc()}")
+            
+            try:
+                page_content = page.content()
+                import re
+                
+                self.log(f"[变动运费12] 开始查找变动运费12表格")
+                
+                start_pattern = r'产品运输变动费用（元）'
+                start_match = re.search(start_pattern, page_content)
+                
+                if start_match:
+                    start_pos = start_match.end()
+                    self.log(f"[变动运费12] 找到'产品运输变动费用（元）'，位置: {start_pos}")
+                    
+                    target_content = page_content[start_pos:]
+                    self.log(f"[变动运费12] 从'产品运输变动费用（元）'后的内容长度: {len(target_content)}")
+                    
+                    table_pattern = r'<table[^>]*>.*?<tbody>(.*?)</tbody>'
+                    table_matches = re.findall(table_pattern, target_content, re.DOTALL)
+                    
+                    if len(table_matches) >= 1:
+                        first_table_match = table_matches[0]
+                        tbody_content = first_table_match
+                        self.log(f"[变动运费12] 找到第一张表格，开始提取数字")
+                        
+                        tr_pattern = r'<tr[^>]*>(.*?)</tr>'
+                        tr_matches = re.findall(tr_pattern, tbody_content, re.DOTALL)
+                        
+                        table_data = []
+                        for tr_idx, tr_content in enumerate(tr_matches):
+                            td_pattern = r'<td[^>]*>(.*?)</td>'
+                            td_matches = re.findall(td_pattern, tr_content, re.DOTALL)
+                            
+                            row_numbers = []
+                            for td_content in td_matches:
+                                clean_text = re.sub(r'<[^>]+>', '', td_content)
+                                clean_text = clean_text.strip()
+                                
+                                if clean_text:
+                                    number_pattern = r'^[\d,]+\.?\d*$'
+                                    if re.match(number_pattern, clean_text):
+                                        clean_number = clean_text.replace(',', '')
+                                        try:
+                                            float_num = float(clean_number)
+                                            row_numbers.append(clean_number)
+                                            self.log(f"[变动运费12] 行{tr_idx+1}列{len(row_numbers)} 提取到数字: {clean_number}")
+                                        except ValueError:
+                                            pass
+                            
+                            if row_numbers and tr_idx > 0:
+                                table_data.append(row_numbers)
+                        
+                        if table_data:
+                            self.log(f"[变动运费12] 表格有 {len(table_data)} 行")
+                            for i, row in enumerate(table_data):
+                                self.log(f"[变动运费12] 第{i+1}行有 {len(row)} 个数字: {row}")
+                            
+                            shipping_items = self.shipping_table3.get_children()
+                            
+                            if len(table_data) >= 1 and len(shipping_items) >= 2:
+                                row_data = table_data[0]
+                                
+                                product1_item = shipping_items[0]
+                                product1_values = list(self.shipping_table3.item(product1_item, "values"))
+                                if len(row_data) >= 1:
+                                    product1_values[1] = row_data[0]
+                                    self.log(f"[变动运费12] 产品1 市场1: {row_data[0]}")
+                                if len(row_data) >= 2:
+                                    product1_values[2] = row_data[1]
+                                    self.log(f"[变动运费12] 产品1 市场2: {row_data[1]}")
+                                if len(row_data) >= 3:
+                                    product1_values[3] = row_data[2]
+                                    self.log(f"[变动运费12] 产品1 市场3: {row_data[2]}")
+                                if len(row_data) >= 4:
+                                    product1_values[4] = row_data[3]
+                                    self.log(f"[变动运费12] 产品1 市场4: {row_data[3]}")
+                                self.shipping_table3.item(product1_item, values=product1_values)
+                                
+                                product2_item = shipping_items[1]
+                                product2_values = list(self.shipping_table3.item(product2_item, "values"))
+                                if len(row_data) >= 5:
+                                    product2_values[1] = row_data[4]
+                                    self.log(f"[变动运费12] 产品2 市场1: {row_data[4]}")
+                                if len(row_data) >= 6:
+                                    product2_values[2] = row_data[5]
+                                    self.log(f"[变动运费12] 产品2 市场2: {row_data[5]}")
+                                if len(row_data) >= 7:
+                                    product2_values[3] = row_data[6]
+                                    self.log(f"[变动运费12] 产品2 市场3: {row_data[6]}")
+                                if len(row_data) >= 8:
+                                    product2_values[4] = row_data[7]
+                                    self.log(f"[变动运费12] 产品2 市场4: {row_data[7]}")
+                                self.shipping_table3.item(product2_item, values=product2_values)
+                            
+                            self.log(f"[变动运费12] 变动运费12提取完成")
+                        else:
+                            self.log(f"[变动运费12] 未找到任何数字")
+                    else:
+                        self.log(f"[变动运费12] 未找到第一张表格")
+                else:
+                    self.log(f"[变动运费12] 未找到'产品运输变动费用（元）'")
+                    
+            except Exception as e:
+                self.log(f"[变动运费12] 提取变动运费12失败: {e}")
+                import traceback
+                self.log(f"[调试] 错误详情: {traceback.format_exc()}")
+            
+            try:
+                page_content = page.content()
+                import re
+                
+                self.log(f"[变动运费34] 开始查找变动运费34表格")
+                
+                start_pattern = r'产品运输变动费用（元）'
+                start_match = re.search(start_pattern, page_content)
+                
+                if start_match:
+                    start_pos = start_match.end()
+                    self.log(f"[变动运费34] 找到'产品运输变动费用（元）'，位置: {start_pos}")
+                    
+                    target_content = page_content[start_pos:]
+                    self.log(f"[变动运费34] 从'产品运输变动费用（元）'后的内容长度: {len(target_content)}")
+                    
+                    table_pattern = r'<table[^>]*>.*?<tbody>(.*?)</tbody>'
+                    table_matches = re.findall(table_pattern, target_content, re.DOTALL)
+                    
+                    if len(table_matches) >= 2:
+                        second_table_match = table_matches[1]
+                        tbody_content = second_table_match
+                        self.log(f"[变动运费34] 找到第二张表格，开始提取数字")
+                        
+                        tr_pattern = r'<tr[^>]*>(.*?)</tr>'
+                        tr_matches = re.findall(tr_pattern, tbody_content, re.DOTALL)
+                        
+                        table_data = []
+                        for tr_idx, tr_content in enumerate(tr_matches):
+                            td_pattern = r'<td[^>]*>(.*?)</td>'
+                            td_matches = re.findall(td_pattern, tr_content, re.DOTALL)
+                            
+                            row_numbers = []
+                            for td_content in td_matches:
+                                clean_text = re.sub(r'<[^>]+>', '', td_content)
+                                clean_text = clean_text.strip()
+                                
+                                if clean_text:
+                                    number_pattern = r'^[\d,]+\.?\d*$'
+                                    if re.match(number_pattern, clean_text):
+                                        clean_number = clean_text.replace(',', '')
+                                        try:
+                                            float_num = float(clean_number)
+                                            row_numbers.append(clean_number)
+                                            self.log(f"[变动运费34] 行{tr_idx+1}列{len(row_numbers)} 提取到数字: {clean_number}")
+                                        except ValueError:
+                                            pass
+                            
+                            if row_numbers and tr_idx > 0:
+                                table_data.append(row_numbers)
+                        
+                        if table_data:
+                            self.log(f"[变动运费34] 表格有 {len(table_data)} 行")
+                            for i, row in enumerate(table_data):
+                                self.log(f"[变动运费34] 第{i+1}行有 {len(row)} 个数字: {row}")
+                            
+                            shipping_items = self.shipping_table3.get_children()
+                            
+                            if len(table_data) >= 1 and len(shipping_items) >= 4:
+                                row_data = table_data[0]
+                                
+                                product3_item = shipping_items[2]
+                                product3_values = list(self.shipping_table3.item(product3_item, "values"))
+                                if len(row_data) >= 1:
+                                    product3_values[1] = row_data[0]
+                                    self.log(f"[变动运费34] 产品3 市场1: {row_data[0]}")
+                                if len(row_data) >= 2:
+                                    product3_values[2] = row_data[1]
+                                    self.log(f"[变动运费34] 产品3 市场2: {row_data[1]}")
+                                if len(row_data) >= 3:
+                                    product3_values[3] = row_data[2]
+                                    self.log(f"[变动运费34] 产品3 市场3: {row_data[2]}")
+                                if len(row_data) >= 4:
+                                    product3_values[4] = row_data[3]
+                                    self.log(f"[变动运费34] 产品3 市场4: {row_data[3]}")
+                                self.shipping_table3.item(product3_item, values=product3_values)
+                                
+                                product4_item = shipping_items[3]
+                                product4_values = list(self.shipping_table3.item(product4_item, "values"))
+                                if len(row_data) >= 5:
+                                    product4_values[1] = row_data[4]
+                                    self.log(f"[变动运费34] 产品4 市场1: {row_data[4]}")
+                                if len(row_data) >= 6:
+                                    product4_values[2] = row_data[5]
+                                    self.log(f"[变动运费34] 产品4 市场2: {row_data[5]}")
+                                if len(row_data) >= 7:
+                                    product4_values[3] = row_data[6]
+                                    self.log(f"[变动运费34] 产品4 市场3: {row_data[6]}")
+                                if len(row_data) >= 8:
+                                    product4_values[4] = row_data[7]
+                                    self.log(f"[变动运费34] 产品4 市场4: {row_data[7]}")
+                                self.shipping_table3.item(product4_item, values=product4_values)
+                            
+                            self.log(f"[变动运费34] 变动运费34提取完成")
+                        else:
+                            self.log(f"[变动运费34] 未找到任何数字")
+                    else:
+                        self.log(f"[变动运费34] 未找到第二张表格")
+                else:
+                    self.log(f"[变动运费34] 未找到'产品运输变动费用（元）'")
+                    
+            except Exception as e:
+                self.log(f"[变动运费34] 提取变动运费34失败: {e}")
+                import traceback
+                self.log(f"[调试] 错误详情: {traceback.format_exc()}")
+            
+            try:
+                page_content = page.content()
+                import re
+                
+                self.log(f"[原材料折扣] 开始查找原材料折扣表格")
+                
+                start_pattern = r'<h4>原材料价格</h4>'
+                start_match = re.search(start_pattern, page_content)
+                
+                if start_match:
+                    start_pos = start_match.end()
+                    self.log(f"[原材料折扣] 找到'<h4>原材料价格</h4>'，位置: {start_pos}")
+                    
+                    target_content = page_content[start_pos:]
+                    self.log(f"[原材料折扣] 从'<h4>原材料价格</h4>'后的内容长度: {len(target_content)}")
+                    
+                    table_pattern = r'<table[^>]*>.*?<tbody>(.*?)</tbody>'
+                    table_match = re.search(table_pattern, target_content, re.DOTALL)
+                    
+                    if table_match:
+                        tbody_content = table_match.group(1)
+                        self.log(f"[原材料折扣] 找到原材料折扣表格，开始提取数字")
+                        
+                        tr_pattern = r'<tr[^>]*>(.*?)</tr>'
+                        tr_matches = re.findall(tr_pattern, tbody_content, re.DOTALL)
+                        
+                        table_data = []
+                        for tr_idx, tr_content in enumerate(tr_matches):
+                            td_pattern = r'<td[^>]*>(.*?)</td>'
+                            td_matches = re.findall(td_pattern, tr_content, re.DOTALL)
+                            
+                            row_numbers = []
+                            for td_content in td_matches:
+                                clean_text = re.sub(r'<[^>]+>', '', td_content)
+                                clean_text = clean_text.strip()
+                                
+                                if clean_text:
+                                    number_pattern = r'^[\d,]+\.?\d*$'
+                                    if re.match(number_pattern, clean_text):
+                                        clean_number = clean_text.replace(',', '')
+                                        try:
+                                            float_num = float(clean_number)
+                                            row_numbers.append(clean_number)
+                                            self.log(f"[原材料折扣] 行{tr_idx+1}列{len(row_numbers)} 提取到数字: {clean_number}")
+                                        except ValueError:
+                                            pass
+                            
+                            if row_numbers and tr_idx > 0:
+                                table_data.append(row_numbers)
+                        
+                        if table_data:
+                            self.log(f"[原材料折扣] 表格有 {len(table_data)} 行")
+                            for i, row in enumerate(table_data):
+                                self.log(f"[原材料折扣] 第{i+1}行有 {len(row)} 个数字: {row}")
+                            
+                            discount_items = self.discount_table.get_children()
+                            
+                            for i, item in enumerate(discount_items):
+                                current_values = list(self.discount_table.item(item, "values"))
+                                
+                                if i < len(table_data):
+                                    row_data = table_data[i]
+                                    if len(row_data) >= 1:
+                                        current_values[0] = row_data[0]
+                                        self.log(f"[原材料折扣] 第{i+1}行 col1: {row_data[0]}")
+                                    if len(row_data) >= 2:
+                                        current_values[1] = row_data[1]
+                                        self.log(f"[原材料折扣] 第{i+1}行 col2: {row_data[1]}")
+                                
+                                self.discount_table.item(item, values=current_values)
+                            
+                            self.log(f"[原材料折扣] 原材料折扣提取完成")
+                        else:
+                            self.log(f"[原材料折扣] 未找到任何数字")
+                    else:
+                        self.log(f"[原材料折扣] 在目标区域未找到表格")
+                        self.log(f"[调试] 目标区域前500字符: {target_content[:500]}")
+                else:
+                    self.log(f"[原材料折扣] 未找到'<h4>原材料价格</h4>'")
+                    
+            except Exception as e:
+                self.log(f"[原材料折扣] 提取原材料折扣失败: {e}")
                 import traceback
                 self.log(f"[调试] 错误详情: {traceback.format_exc()}")
             
