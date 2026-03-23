@@ -442,11 +442,11 @@ class LoginGUI:
             show="headings",
             height=2
         )
-        shipping_table.heading("col1", text="固定运费")
-        shipping_table.heading("col2", text="市场11")
-        shipping_table.heading("col3", text="市场12")
-        shipping_table.heading("col4", text="市场13")
-        shipping_table.heading("col5", text="市场14")
+        shipping_table.heading("col1", text="固定运费12")
+        shipping_table.heading("col2", text="市场1")
+        shipping_table.heading("col3", text="市场2")
+        shipping_table.heading("col4", text="市场3")
+        shipping_table.heading("col5", text="市场4")
         shipping_table.column("col1", width=100, anchor=tk.CENTER)
         shipping_table.column("col2", width=100, anchor=tk.CENTER)
         shipping_table.column("col3", width=100, anchor=tk.CENTER)
@@ -454,7 +454,7 @@ class LoginGUI:
         shipping_table.column("col5", width=100, anchor=tk.CENTER)
         shipping_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        shipping_products = ["产品12", "产品34"]
+        shipping_products = ["产品1", "产品2"]
         for product in shipping_products:
             shipping_table.insert("", tk.END, values=(product, "", "", "", ""))
         
@@ -469,11 +469,11 @@ class LoginGUI:
             show="headings",
             height=2
         )
-        shipping_table2.heading("col1", text="固定运费")
-        shipping_table2.heading("col2", text="市场21")
-        shipping_table2.heading("col3", text="市场22")
-        shipping_table2.heading("col4", text="市场23")
-        shipping_table2.heading("col5", text="市场24")
+        shipping_table2.heading("col1", text="固定运费34")
+        shipping_table2.heading("col2", text="市场1")
+        shipping_table2.heading("col3", text="市场2")
+        shipping_table2.heading("col4", text="市场3")
+        shipping_table2.heading("col5", text="市场4")
         shipping_table2.column("col1", width=100, anchor=tk.CENTER)
         shipping_table2.column("col2", width=100, anchor=tk.CENTER)
         shipping_table2.column("col3", width=100, anchor=tk.CENTER)
@@ -481,7 +481,7 @@ class LoginGUI:
         shipping_table2.column("col5", width=100, anchor=tk.CENTER)
         shipping_table2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        shipping_products2 = ["产品12", "产品34"]
+        shipping_products2 = ["产品3", "产品4"]
         for product in shipping_products2:
             shipping_table2.insert("", tk.END, values=(product, "", "", "", ""))
         
@@ -496,11 +496,11 @@ class LoginGUI:
             show="headings",
             height=2
         )
-        shipping_table3.heading("col1", text="变动运费")
-        shipping_table3.heading("col2", text="市场31")
-        shipping_table3.heading("col3", text="市场32")
-        shipping_table3.heading("col4", text="市场33")
-        shipping_table3.heading("col5", text="市场34")
+        shipping_table3.heading("col1", text="变动运费12")
+        shipping_table3.heading("col2", text="市场1")
+        shipping_table3.heading("col3", text="市场2")
+        shipping_table3.heading("col4", text="市场3")
+        shipping_table3.heading("col5", text="市场4")
         shipping_table3.column("col1", width=100, anchor=tk.CENTER)
         shipping_table3.column("col2", width=100, anchor=tk.CENTER)
         shipping_table3.column("col3", width=100, anchor=tk.CENTER)
@@ -508,11 +508,38 @@ class LoginGUI:
         shipping_table3.column("col5", width=100, anchor=tk.CENTER)
         shipping_table3.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        shipping_products3 = ["产品12", "产品34"]
+        shipping_products3 = ["产品1", "产品2"]
         for product in shipping_products3:
             shipping_table3.insert("", tk.END, values=(product, "", "", "", ""))
         
         self.shipping_table3 = shipping_table3
+
+        shipping_table4_frame = ttk.Frame(rules_right_frame)
+        shipping_table4_frame.pack(fill=tk.BOTH, expand=False)
+        
+        shipping_table4 = ttk.Treeview(
+            shipping_table4_frame,
+            columns=("col1", "col2", "col3", "col4", "col5"),
+            show="headings",
+            height=2
+        )
+        shipping_table4.heading("col1", text="变动运费34")
+        shipping_table4.heading("col2", text="市场1")
+        shipping_table4.heading("col3", text="市场2")
+        shipping_table4.heading("col4", text="市场3")
+        shipping_table4.heading("col5", text="市场4")
+        shipping_table4.column("col1", width=100, anchor=tk.CENTER)
+        shipping_table4.column("col2", width=100, anchor=tk.CENTER)
+        shipping_table4.column("col3", width=100, anchor=tk.CENTER)
+        shipping_table4.column("col4", width=100, anchor=tk.CENTER)
+        shipping_table4.column("col5", width=100, anchor=tk.CENTER)
+        shipping_table4.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        shipping_products4 = ["产品3", "产品4"]
+        for product in shipping_products4:
+            shipping_table4.insert("", tk.END, values=(product, "", "", "", ""))
+        
+        self.shipping_table4 = shipping_table4
         
         discount_table_frame = ttk.Frame(rules_right_frame)
         discount_table_frame.pack(fill=tk.BOTH, expand=True)
@@ -1676,6 +1703,513 @@ class LoginGUI:
             
             self.update_status(f"已提取 {len([v for v in param_values.values() if v])} 个参数值", color="green")
             self.log(f"[参数] 参数提取完成")
+            
+            try:
+                page_content = page.content()
+                import re
+                
+                self.log(f"[成品库存费] 开始查找成品库存费表格")
+                
+                start_pattern = r'库存费为[：:]\s*'
+                end_pattern = r'库存费在每期'
+                
+                start_match = re.search(start_pattern, page_content)
+                end_match = re.search(end_pattern, page_content)
+                
+                if start_match and end_match:
+                    start_pos = start_match.end()
+                    end_pos = end_match.start()
+                    
+                    target_content = page_content[start_pos:end_pos]
+                    self.log(f"[成品库存费] 找到目标区域，长度: {len(target_content)}")
+                    
+                    table_pattern = r'<table[^>]*>.*?<tbody>(.*?)</tbody>'
+                    table_match = re.search(table_pattern, target_content, re.DOTALL)
+                    
+                    if table_match:
+                        tbody_content = table_match.group(1)
+                        self.log(f"[成品库存费] 找到成品库存费表格，开始提取数字")
+                        
+                        tr_pattern = r'<tr[^>]*>(.*?)</tr>'
+                        tr_matches = re.findall(tr_pattern, tbody_content, re.DOTALL)
+                        
+                        all_numbers = []
+                        for tr_idx, tr_content in enumerate(tr_matches):
+                            td_pattern = r'<td[^>]*>(.*?)</td>'
+                            td_matches = re.findall(td_pattern, tr_content, re.DOTALL)
+                            
+                            for td_content in td_matches:
+                                clean_text = re.sub(r'<[^>]+>', '', td_content)
+                                clean_text = clean_text.strip()
+                                
+                                number_pattern = r'(\d+\.?\d*|\d+,?\d*)'
+                                numbers = re.findall(number_pattern, clean_text)
+                                
+                                for num in numbers:
+                                    num = num.replace(',', '')
+                                    try:
+                                        float_num = float(num)
+                                        all_numbers.append(num)
+                                        self.log(f"[成品库存费] 行{tr_idx+1} 提取到数字: {num}")
+                                    except ValueError:
+                                        pass
+                        
+                        if all_numbers:
+                            self.log(f"[成品库存费] 共提取到 {len(all_numbers)} 个数字")
+                            
+                            product_items = self.product_table.get_children()
+                            for i, item in enumerate(product_items):
+                                if i < len(all_numbers):
+                                    current_values = list(self.product_table.item(item, "values"))
+                                    current_values[1] = all_numbers[i]
+                                    self.product_table.item(item, values=current_values)
+                                    self.log(f"[成品库存费] 产品{i+1} 成品库存费: {all_numbers[i]}")
+                                else:
+                                    self.log(f"[成品库存费] 产品{i+1} 无对应数字")
+                            
+                            self.log(f"[成品库存费] 成品库存费提取完成")
+                        else:
+                            self.log(f"[成品库存费] 未找到任何数字")
+                    else:
+                        self.log(f"[成品库存费] 在目标区域未找到表格")
+                        self.log(f"[调试] 目标区域前500字符: {target_content[:500]}")
+                else:
+                    if not start_match:
+                        self.log(f"[成品库存费] 未找到'库存费为：'")
+                    if not end_match:
+                        self.log(f"[成品库存费] 未找到'库存费在每期'")
+                    
+            except Exception as e:
+                self.log(f"[成品库存费] 提取成品库存费失败: {e}")
+                import traceback
+                self.log(f"[调试] 错误详情: {traceback.format_exc()}")
+            
+            try:
+                page_content = page.content()
+                import re
+                
+                self.log(f"[管理费] 开始查找管理费表格")
+                
+                start_pattern = r'具体见下表（单位：元）'
+                end_pattern = r'维修费'
+                
+                start_match = re.search(start_pattern, page_content)
+                end_match = re.search(end_pattern, page_content)
+                
+                if start_match and end_match:
+                    start_pos = start_match.end()
+                    end_pos = end_match.start()
+                    
+                    target_content = page_content[start_pos:end_pos]
+                    self.log(f"[管理费] 找到目标区域，长度: {len(target_content)}")
+                    
+                    table_pattern = r'<table[^>]*>.*?<tbody>(.*?)</tbody>'
+                    table_match = re.search(table_pattern, target_content, re.DOTALL)
+                    
+                    if table_match:
+                        tbody_content = table_match.group(1)
+                        self.log(f"[管理费] 找到管理费表格，开始提取数字")
+                        
+                        tr_pattern = r'<tr[^>]*>(.*?)</tr>'
+                        tr_matches = re.findall(tr_pattern, tbody_content, re.DOTALL)
+                        
+                        table_data = []
+                        for tr_idx, tr_content in enumerate(tr_matches):
+                            td_pattern = r'<td[^>]*>(.*?)</td>'
+                            td_matches = re.findall(td_pattern, tr_content, re.DOTALL)
+                            
+                            row_numbers = []
+                            for td_content in td_matches:
+                                clean_text = re.sub(r'<[^>]+>', '', td_content)
+                                clean_text = clean_text.strip()
+                                
+                                number_pattern = r'(\d+\.?\d*|\d+,?\d*)'
+                                numbers = re.findall(number_pattern, clean_text)
+                                
+                                for num in numbers:
+                                    num = num.replace(',', '')
+                                    try:
+                                        float_num = float(num)
+                                        row_numbers.append(num)
+                                        self.log(f"[管理费] 行{tr_idx+1}列{len(row_numbers)} 提取到数字: {num}")
+                                    except ValueError:
+                                        pass
+                            
+                            if row_numbers:
+                                table_data.append(row_numbers)
+                        
+                        if table_data:
+                            self.log(f"[管理费] 表格有 {len(table_data)} 行")
+                            for i, row in enumerate(table_data):
+                                self.log(f"[管理费] 第{i+1}行有 {len(row)} 个数字: {row}")
+                            
+                            first_col_numbers = []
+                            second_col_numbers = []
+                            
+                            for row in table_data:
+                                if len(row) >= 1:
+                                    first_col_numbers.append(row[0])
+                                if len(row) >= 2:
+                                    second_col_numbers.append(row[1])
+                            
+                            self.log(f"[管理费] 第一列数字: {first_col_numbers}")
+                            self.log(f"[管理费] 第二列数字: {second_col_numbers}")
+                            
+                            product_items = self.product_table.get_children()
+                            for i, item in enumerate(product_items):
+                                current_values = list(self.product_table.item(item, "values"))
+                                
+                                if i < len(first_col_numbers):
+                                    current_values[3] = first_col_numbers[i]
+                                    self.log(f"[管理费] 产品{i+1} 一正管理费: {first_col_numbers[i]}")
+                                
+                                if i < len(second_col_numbers):
+                                    current_values[4] = second_col_numbers[i]
+                                    self.log(f"[管理费] 产品{i+1} 二正管理费: {second_col_numbers[i]}")
+                                
+                                self.product_table.item(item, values=current_values)
+                            
+                            self.log(f"[管理费] 管理费提取完成")
+                        else:
+                            self.log(f"[管理费] 未找到任何数字")
+                    else:
+                        self.log(f"[管理费] 在目标区域未找到表格")
+                        self.log(f"[调试] 目标区域前500字符: {target_content[:500]}")
+                else:
+                    if not start_match:
+                        self.log(f"[管理费] 未找到'具体见下表（单位：元）'")
+                    if not end_match:
+                        self.log(f"[管理费] 未找到'维修费'")
+                    
+            except Exception as e:
+                self.log(f"[管理费] 提取管理费失败: {e}")
+                import traceback
+                self.log(f"[调试] 错误详情: {traceback.format_exc()}")
+            
+            try:
+                page_content = page.content()
+                import re
+                
+                self.log(f"[订货转化比例] 开始查找订货转化比例表格")
+                
+                start_pattern = r'<h3>预订</h3>'
+                start_match = re.search(start_pattern, page_content)
+                
+                if start_match:
+                    start_pos = start_match.end()
+                    self.log(f"[订货转化比例] 找到<h3>预订</h3>，位置: {start_pos}")
+                    
+                    target_content = page_content[start_pos:]
+                    self.log(f"[订货转化比例] 从<h3>预订</h3>后的内容长度: {len(target_content)}")
+                    
+                    table_pattern = r'<table[^>]*>.*?<tbody>(.*?)</tbody>'
+                    table_match = re.search(table_pattern, target_content, re.DOTALL)
+                    
+                    if table_match:
+                        table_start_pos = start_pos + table_match.start()
+                        table_end_pos = start_pos + table_match.end()
+                        self.log(f"[订货转化比例] 找到第一张表格，位置: {table_start_pos}-{table_end_pos}")
+                        
+                        tbody_content = table_match.group(1)
+                        self.log(f"[订货转化比例] 找到订货转化比例表格，开始提取数字")
+                        
+                        tr_pattern = r'<tr[^>]*>(.*?)</tr>'
+                        tr_matches = re.findall(tr_pattern, tbody_content, re.DOTALL)
+                        
+                        table_data = []
+                        for tr_idx, tr_content in enumerate(tr_matches):
+                            td_pattern = r'<td[^>]*>(.*?)</td>'
+                            td_matches = re.findall(td_pattern, tr_content, re.DOTALL)
+                            
+                            row_numbers = []
+                            for td_content in td_matches:
+                                clean_text = re.sub(r'<[^>]+>', '', td_content)
+                                clean_text = clean_text.strip()
+                                
+                                number_pattern = r'(\d+\.?\d*%)'
+                                numbers = re.findall(number_pattern, clean_text)
+                                
+                                for num in numbers:
+                                    row_numbers.append(num)
+                                    self.log(f"[订货转化比例] 行{tr_idx+1}列{len(row_numbers)} 提取到数字: {num}")
+                            
+                            if row_numbers:
+                                table_data.append(row_numbers)
+                        
+                        if table_data:
+                            self.log(f"[订货转化比例] 表格有 {len(table_data)} 行")
+                            for i, row in enumerate(table_data):
+                                self.log(f"[订货转化比例] 第{i+1}行有 {len(row)} 个数字: {row}")
+                            
+                            col_numbers = [[], [], [], []]
+                            
+                            for row in table_data:
+                                for col_idx in range(4):
+                                    if col_idx < len(row):
+                                        col_numbers[col_idx].append(row[col_idx])
+                            
+                            self.log(f"[订货转化比例] 产品1列数字: {col_numbers[0]}")
+                            self.log(f"[订货转化比例] 产品2列数字: {col_numbers[1]}")
+                            self.log(f"[订货转化比例] 产品3列数字: {col_numbers[2]}")
+                            self.log(f"[订货转化比例] 产品4列数字: {col_numbers[3]}")
+                            
+                            market_items = self.conversion_table.get_children()
+                            for i, item in enumerate(market_items):
+                                current_values = list(self.conversion_table.item(item, "values"))
+                                
+                                if i < len(col_numbers[0]):
+                                    current_values[1] = col_numbers[0][i]
+                                    self.log(f"[订货转化比例] 市场{i+1} 产品1: {col_numbers[0][i]}")
+                                
+                                if i < len(col_numbers[1]):
+                                    current_values[2] = col_numbers[1][i]
+                                    self.log(f"[订货转化比例] 市场{i+1} 产品2: {col_numbers[1][i]}")
+                                
+                                if i < len(col_numbers[2]):
+                                    current_values[3] = col_numbers[2][i]
+                                    self.log(f"[订货转化比例] 市场{i+1} 产品3: {col_numbers[2][i]}")
+                                
+                                if i < len(col_numbers[3]):
+                                    current_values[4] = col_numbers[3][i]
+                                    self.log(f"[订货转化比例] 市场{i+1} 产品4: {col_numbers[3][i]}")
+                                
+                                self.conversion_table.item(item, values=current_values)
+                            
+                            self.log(f"[订货转化比例] 订货转化比例提取完成")
+                        else:
+                            self.log(f"[订货转化比例] 未找到任何数字")
+                    else:
+                        self.log(f"[订货转化比例] 在目标区域未找到表格")
+                        self.log(f"[调试] 目标区域前500字符: {target_content[:500]}")
+                else:
+                    self.log(f"[订货转化比例] 未找到'<h3>预订</h3>'")
+                    
+            except Exception as e:
+                self.log(f"[订货转化比例] 提取订货转化比例失败: {e}")
+                import traceback
+                self.log(f"[调试] 错误详情: {traceback.format_exc()}")
+            
+            try:
+                page_content = page.content()
+                import re
+                
+                self.log(f"[产品生产消耗] 开始查找产品生产消耗表格")
+                
+                start_pattern = r'<h3>生产单个产品所需要的资源</h3>'
+                start_match = re.search(start_pattern, page_content)
+                
+                if start_match:
+                    start_pos = start_match.end()
+                    self.log(f"[产品生产消耗] 找到<h3>生产单个产品所需要的资源</h3>，位置: {start_pos}")
+                    
+                    target_content = page_content[start_pos:]
+                    self.log(f"[产品生产消耗] 从<h3>生产单个产品所需要的资源</h3>后的内容长度: {len(target_content)}")
+                    
+                    table_pattern = r'<table[^>]*>.*?<tbody>(.*?)</tbody>'
+                    table_match = re.search(table_pattern, target_content, re.DOTALL)
+                    
+                    if table_match:
+                        table_start_pos = start_pos + table_match.start()
+                        table_end_pos = start_pos + table_match.end()
+                        self.log(f"[产品生产消耗] 找到第一张表格，位置: {table_start_pos}-{table_end_pos}")
+                        
+                        tbody_content = table_match.group(1)
+                        self.log(f"[产品生产消耗] 找到产品生产消耗表格，开始提取数字")
+                        
+                        tr_pattern = r'<tr[^>]*>(.*?)</tr>'
+                        tr_matches = re.findall(tr_pattern, tbody_content, re.DOTALL)
+                        
+                        table_data = []
+                        for tr_idx, tr_content in enumerate(tr_matches):
+                            td_pattern = r'<td[^>]*>(.*?)</td>'
+                            td_matches = re.findall(td_pattern, tr_content, re.DOTALL)
+                            
+                            row_numbers = []
+                            for td_content in td_matches:
+                                clean_text = re.sub(r'<[^>]+>', '', td_content)
+                                clean_text = clean_text.strip()
+                                
+                                number_pattern = r'(\d+\.?\d*)'
+                                numbers = re.findall(number_pattern, clean_text)
+                                
+                                for num in numbers:
+                                    num = num.replace(',', '')
+                                    try:
+                                        float_num = float(num)
+                                        row_numbers.append(num)
+                                        self.log(f"[产品生产消耗] 行{tr_idx+1}列{len(row_numbers)} 提取到数字: {num}")
+                                    except ValueError:
+                                        pass
+                            
+                            if row_numbers:
+                                table_data.append(row_numbers)
+                        
+                        if table_data:
+                            self.log(f"[产品生产消耗] 表格有 {len(table_data)} 行")
+                            for i, row in enumerate(table_data):
+                                self.log(f"[产品生产消耗] 第{i+1}行有 {len(row)} 个数字: {row}")
+                            
+                            col_numbers = [[], [], [], []]
+                            
+                            for row in table_data:
+                                for col_idx in range(4):
+                                    if col_idx < len(row):
+                                        col_numbers[col_idx].append(row[col_idx])
+                            
+                            self.log(f"[产品生产消耗] 产品1列数字: {col_numbers[0]}")
+                            self.log(f"[产品生产消耗] 产品2列数字: {col_numbers[1]}")
+                            self.log(f"[产品生产消耗] 产品3列数字: {col_numbers[2]}")
+                            self.log(f"[产品生产消耗] 产品4列数字: {col_numbers[3]}")
+                            
+                            production_items = self.production_table.get_children()
+                            for i, item in enumerate(production_items):
+                                current_values = list(self.production_table.item(item, "values"))
+                                
+                                if i < len(col_numbers[0]):
+                                    current_values[1] = col_numbers[0][i]
+                                    self.log(f"[产品生产消耗] {i+1}行 产品1: {col_numbers[0][i]}")
+                                
+                                if i < len(col_numbers[1]):
+                                    current_values[2] = col_numbers[1][i]
+                                    self.log(f"[产品生产消耗] {i+1}行 产品2: {col_numbers[1][i]}")
+                                
+                                if i < len(col_numbers[2]):
+                                    current_values[3] = col_numbers[2][i]
+                                    self.log(f"[产品生产消耗] {i+1}行 产品3: {col_numbers[2][i]}")
+                                
+                                if i < len(col_numbers[3]):
+                                    current_values[4] = col_numbers[3][i]
+                                    self.log(f"[产品生产消耗] {i+1}行 产品4: {col_numbers[3][i]}")
+                                
+                                self.production_table.item(item, values=current_values)
+                            
+                            self.log(f"[产品生产消耗] 产品生产消耗提取完成")
+                        else:
+                            self.log(f"[产品生产消耗] 未找到任何数字")
+                    else:
+                        self.log(f"[产品生产消耗] 在目标区域未找到表格")
+                        self.log(f"[调试] 目标区域前500字符: {target_content[:500]}")
+                else:
+                    self.log(f"[产品生产消耗] 未找到'<h3>生产单个产品所需要的资源</h3>'")
+                    
+            except Exception as e:
+                self.log(f"[产品生产消耗] 提取产品生产消耗失败: {e}")
+                import traceback
+                self.log(f"[调试] 错误详情: {traceback.format_exc()}")
+            
+            try:
+                page_content = page.content()
+                import re
+                
+                self.log(f"[研发投入] 开始查找研发投入表格")
+                
+                start_pattern = r'<h3>研发费用</h3>'
+                start_match = re.search(start_pattern, page_content)
+                
+                if start_match:
+                    start_pos = start_match.end()
+                    self.log(f"[研发投入] 找到<h3>研发费用</h3>，位置: {start_pos}")
+                    
+                    target_content = page_content[start_pos:]
+                    self.log(f"[研发投入] 从<h3>研发费用</h3>后的内容长度: {len(target_content)}")
+                    
+                    table_pattern = r'<table[^>]*>.*?<tbody>(.*?)</tbody>'
+                    table_match = re.search(table_pattern, target_content, re.DOTALL)
+                    
+                    if table_match:
+                        table_start_pos = start_pos + table_match.start()
+                        table_end_pos = start_pos + table_match.end()
+                        self.log(f"[研发投入] 找到第一张表格，位置: {table_start_pos}-{table_end_pos}")
+                        
+                        tbody_content = table_match.group(1)
+                        self.log(f"[研发投入] 找到研发投入表格，开始提取数字")
+                        
+                        tr_pattern = r'<tr[^>]*>(.*?)</tr>'
+                        tr_matches = re.findall(tr_pattern, tbody_content, re.DOTALL)
+                        
+                        table_data = []
+                        for tr_idx, tr_content in enumerate(tr_matches):
+                            td_pattern = r'<td[^>]*>(.*?)</td>'
+                            td_matches = re.findall(td_pattern, tr_content, re.DOTALL)
+                            
+                            row_numbers = []
+                            for td_content in td_matches:
+                                clean_text = re.sub(r'<[^>]+>', '', td_content)
+                                clean_text = clean_text.strip()
+                                
+                                number_pattern = r'(\d+\.?\d*)'
+                                numbers = re.findall(number_pattern, clean_text)
+                                
+                                if numbers:
+                                    combined_number = ''.join(numbers)
+                                    try:
+                                        float_num = float(combined_number)
+                                        row_numbers.append(combined_number)
+                                        self.log(f"[研发投入] 行{tr_idx+1}列{len(row_numbers)} 提取到数字: {combined_number}")
+                                    except ValueError:
+                                        pass
+                            
+                            if row_numbers and tr_idx > 0:
+                                table_data.append(row_numbers)
+                        
+                        if table_data:
+                            self.log(f"[研发投入] 表格有 {len(table_data)} 行")
+                            for i, row in enumerate(table_data):
+                                self.log(f"[研发投入] 第{i+1}行有 {len(row)} 个数字: {row}")
+                            
+                            col_numbers = [[], [], [], [], []]
+                            
+                            for row in table_data:
+                                for col_idx in range(5):
+                                    if col_idx < len(row):
+                                        col_numbers[col_idx].append(row[col_idx])
+                            
+                            self.log(f"[研发投入] 等级1列数字: {col_numbers[0]}")
+                            self.log(f"[研发投入] 等级2列数字: {col_numbers[1]}")
+                            self.log(f"[研发投入] 等级3列数字: {col_numbers[2]}")
+                            self.log(f"[研发投入] 等级4列数字: {col_numbers[3]}")
+                            self.log(f"[研发投入] 等级5列数字: {col_numbers[4]}")
+                            
+                            grade_items = self.grade_table.get_children()
+                            for i, item in enumerate(grade_items):
+                                current_values = list(self.grade_table.item(item, "values"))
+                                
+                                if i < len(col_numbers[0]):
+                                    current_values[1] = col_numbers[0][i]
+                                    self.log(f"[研发投入] 产品{i+1} 等级1: {col_numbers[0][i]}")
+                                
+                                if i < len(col_numbers[1]):
+                                    current_values[2] = col_numbers[1][i]
+                                    self.log(f"[研发投入] 产品{i+1} 等级2: {col_numbers[1][i]}")
+                                
+                                if i < len(col_numbers[2]):
+                                    current_values[3] = col_numbers[2][i]
+                                    self.log(f"[研发投入] 产品{i+1} 等级3: {col_numbers[2][i]}")
+                                
+                                if i < len(col_numbers[3]):
+                                    current_values[4] = col_numbers[3][i]
+                                    self.log(f"[研发投入] 产品{i+1} 等级4: {col_numbers[3][i]}")
+                                
+                                if i < len(col_numbers[4]):
+                                    current_values[5] = col_numbers[4][i]
+                                    self.log(f"[研发投入] 产品{i+1} 等级5: {col_numbers[4][i]}")
+                                
+                                self.grade_table.item(item, values=current_values)
+                            
+                            self.log(f"[研发投入] 研发投入提取完成")
+                        else:
+                            self.log(f"[研发投入] 未找到任何数字")
+                    else:
+                        self.log(f"[研发投入] 在目标区域未找到表格")
+                        self.log(f"[调试] 目标区域前500字符: {target_content[:500]}")
+                else:
+                    self.log(f"[研发投入] 未找到'<h3>研发费用</h3>'")
+                    
+            except Exception as e:
+                self.log(f"[研发投入] 提取研发投入失败: {e}")
+                import traceback
+                self.log(f"[调试] 错误详情: {traceback.format_exc()}")
+            
             return param_values
             
         except Exception as e:
