@@ -1053,12 +1053,104 @@ class LoginGUI:
                     import_count += 1
                     self.log(f"[导入] 已导入 '{param}' 的值: {value}")
             
+            product_inventory_count = 0
+            for item in self.product_table.get_children():
+                item_values = self.product_table.item(item, "values")
+                if item_values and len(item_values) >= 2 and item_values[1]:
+                    product_name = item_values[0]
+                    inventory_cost = item_values[1]
+                    if "产品1" in product_name:
+                        ws['E5'] = inventory_cost
+                        product_inventory_count += 1
+                        self.log(f"[导入] 已导入 产品1 成品库存费: {inventory_cost} 到 E5")
+                    elif "产品2" in product_name:
+                        ws['E6'] = inventory_cost
+                        product_inventory_count += 1
+                        self.log(f"[导入] 已导入 产品2 成品库存费: {inventory_cost} 到 E6")
+                    elif "产品3" in product_name:
+                        ws['E7'] = inventory_cost
+                        product_inventory_count += 1
+                        self.log(f"[导入] 已导入 产品3 成品库存费: {inventory_cost} 到 E7")
+                    elif "产品4" in product_name:
+                        ws['E8'] = inventory_cost
+                        product_inventory_count += 1
+                        self.log(f"[导入] 已导入 产品4 成品库存费: {inventory_cost} 到 E8")
+            
+            import_count += product_inventory_count
+            
+            conversion_count = 0
+            for item in self.conversion_table.get_children():
+                item_values = self.conversion_table.item(item, "values")
+                if item_values and len(item_values) >= 5:
+                    market_name = item_values[0]
+                    for col_idx in range(1, 5):
+                        if item_values[col_idx]:
+                            if "市场1" in market_name:
+                                ws.cell(row=11, column=5 + col_idx - 1, value=item_values[col_idx])
+                                conversion_count += 1
+                                self.log(f"[导入] 已导入 市场1 产品{col_idx} 订货转化比例: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}11")
+                            elif "市场2" in market_name:
+                                ws.cell(row=12, column=5 + col_idx - 1, value=item_values[col_idx])
+                                conversion_count += 1
+                                self.log(f"[导入] 已导入 市场2 产品{col_idx} 订货转化比例: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}12")
+                            elif "市场3" in market_name:
+                                ws.cell(row=13, column=5 + col_idx - 1, value=item_values[col_idx])
+                                conversion_count += 1
+                                self.log(f"[导入] 已导入 市场3 产品{col_idx} 订货转化比例: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}13")
+                            elif "市场4" in market_name:
+                                ws.cell(row=14, column=5 + col_idx - 1, value=item_values[col_idx])
+                                conversion_count += 1
+                                self.log(f"[导入] 已导入 市场4 产品{col_idx} 订货转化比例: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}14")
+            
+            import_count += conversion_count
+            
+            production_count = 0
+            for item in self.production_table.get_children():
+                item_values = self.production_table.item(item, "values")
+                if item_values and len(item_values) >= 5:
+                    item_name = item_values[0]
+                    for col_idx in range(1, 5):
+                        if item_values[col_idx]:
+                            if "机器" in item_name:
+                                ws.cell(row=17, column=5 + col_idx - 1, value=item_values[col_idx])
+                                production_count += 1
+                                self.log(f"[导入] 已导入 机器 产品{col_idx} 生产消耗: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}17")
+                            elif "人力" in item_name:
+                                ws.cell(row=18, column=5 + col_idx - 1, value=item_values[col_idx])
+                                production_count += 1
+                                self.log(f"[导入] 已导入 人力 产品{col_idx} 生产消耗: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}18")
+                            elif "原材料" in item_name:
+                                ws.cell(row=19, column=5 + col_idx - 1, value=item_values[col_idx])
+                                production_count += 1
+                                self.log(f"[导入] 已导入 原材料 产品{col_idx} 生产消耗: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}19")
+            
+            import_count += production_count
+            
+            discount_count = 0
+            for item in self.discount_table.get_children():
+                item_values = self.discount_table.item(item, "values")
+                if item_values and len(item_values) >= 2 and item_values[1]:
+                    discount_count += 1
+                    if discount_count == 1:
+                        ws['D26'] = item_values[0]
+                        ws['E26'] = item_values[1]
+                        self.log(f"[导入] 已导入 原材料折扣1: {item_values[0]} 到 D26, {item_values[1]} 到 E26")
+                    elif discount_count == 2:
+                        ws['D27'] = item_values[0]
+                        ws['E27'] = item_values[1]
+                        self.log(f"[导入] 已导入 原材料折扣2: {item_values[0]} 到 D27, {item_values[1]} 到 E27")
+                    elif discount_count == 3:
+                        ws['D28'] = item_values[0]
+                        ws['E28'] = item_values[1]
+                        self.log(f"[导入] 已导入 原材料折扣3: {item_values[0]} 到 D28, {item_values[1]} 到 E28")
+            
+            import_count += discount_count
             wb.save(self.excel_file_path)
             wb.close()
             
             self.update_status(f"已导入 {import_count} 个参数值到Excel", color="green")
             self.log(f"[导入] 成功导入 {import_count} 个参数值到Excel文件")
-            messagebox.showinfo("成功", f"已成功导入 {import_count} 个参数值到Excel文件")
+            messagebox.showinfo("成功", f"已成功导入 {import_count} 个参数值到Excel文件\n\n包括31个规则参数、{product_inventory_count}个成品库存费、{conversion_count}个订货转化比例、{production_count}个产品生产消耗和{discount_count}个原材料折扣")
             
             try:
                 import os
