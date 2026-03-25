@@ -2851,11 +2851,15 @@ class LoginGUI:
         self.playwright_running = False
         if self.browser_manager:
             self.log("[清理] 关闭浏览器...")
-            self.browser_manager.stop()
-            self.browser_manager = None
-            if not self.page_handler or not self.is_running:
-                self.page_handler = None
-            self.login_handler = None
+            try:
+                self.browser_manager.stop()
+            except Exception:
+                pass
+            finally:
+                self.browser_manager = None
+                if not self.page_handler or not self.is_running:
+                    self.page_handler = None
+                self.login_handler = None
     
     def on_closing(self):
         if messagebox.askyesno("确认退出", "确定要退出 iBizSim 助手吗？"):

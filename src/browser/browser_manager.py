@@ -36,19 +36,31 @@ class BrowserManager:
     def stop(self):
         try:
             if self.page:
-                self.page.close()
-                self.logger.info("Page closed")
+                try:
+                    self.page.close()
+                    self.logger.info("Page closed")
+                except Exception:
+                    pass
             if self.context:
-                self.context.close()
-                self.logger.info("Browser context closed")
+                try:
+                    self.context.close()
+                    self.logger.info("Browser context closed")
+                except Exception:
+                    pass
             if self.browser:
-                self.browser.close()
-                self.logger.info("Browser closed")
+                try:
+                    self.browser.close()
+                    self.logger.info("Browser closed")
+                except Exception:
+                    pass
             if self.playwright:
-                self.playwright.stop()
-                self.logger.info("Playwright stopped")
-        except Exception as e:
-            self.logger.error(f"Error while stopping browser: {e}")
+                try:
+                    self.playwright.stop()
+                    self.logger.info("Playwright stopped")
+                except Exception:
+                    pass
+        except Exception:
+            pass
         finally:
             self.page = None
             self.context = None
