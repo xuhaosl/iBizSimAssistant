@@ -1051,7 +1051,6 @@ class LoginGUI:
                     elif param == "资本利润率":
                         ws['B36'] = value
                     import_count += 1
-                    self.log(f"[导入] 已导入 '{param}' 的值: {value}")
             
             product_inventory_count = 0
             management_count = 0
@@ -1063,19 +1062,15 @@ class LoginGUI:
                     if "产品1" in product_name:
                         ws['E5'] = inventory_cost
                         product_inventory_count += 1
-                        self.log(f"[导入] 已导入 产品1 成品库存费: {inventory_cost} 到 E5")
                     elif "产品2" in product_name:
                         ws['E6'] = inventory_cost
                         product_inventory_count += 1
-                        self.log(f"[导入] 已导入 产品2 成品库存费: {inventory_cost} 到 E6")
                     elif "产品3" in product_name:
                         ws['E7'] = inventory_cost
                         product_inventory_count += 1
-                        self.log(f"[导入] 已导入 产品3 成品库存费: {inventory_cost} 到 E7")
                     elif "产品4" in product_name:
                         ws['E8'] = inventory_cost
                         product_inventory_count += 1
-                        self.log(f"[导入] 已导入 产品4 成品库存费: {inventory_cost} 到 E8")
                 
                 if item_values and len(item_values) >= 5:
                     product_name = item_values[0]
@@ -1083,38 +1078,30 @@ class LoginGUI:
                         if item_values[3]:
                             ws['H25'] = item_values[3]
                             management_count += 1
-                            self.log(f"[导入] 已导入 产品1 一正管理费: {item_values[3]} 到 H25")
                         if item_values[4]:
                             ws['I25'] = item_values[4]
                             management_count += 1
-                            self.log(f"[导入] 已导入 产品1 二正管理费: {item_values[4]} 到 I25")
                     elif "产品2" in product_name:
                         if item_values[3]:
                             ws['H26'] = item_values[3]
                             management_count += 1
-                            self.log(f"[导入] 已导入 产品2 一正管理费: {item_values[3]} 到 H26")
                         if item_values[4]:
                             ws['I26'] = item_values[4]
                             management_count += 1
-                            self.log(f"[导入] 已导入 产品2 二正管理费: {item_values[4]} 到 I26")
                     elif "产品3" in product_name:
                         if item_values[3]:
                             ws['H27'] = item_values[3]
                             management_count += 1
-                            self.log(f"[导入] 已导入 产品3 一正管理费: {item_values[3]} 到 H27")
                         if item_values[4]:
                             ws['I27'] = item_values[4]
                             management_count += 1
-                            self.log(f"[导入] 已导入 产品3 二正管理费: {item_values[4]} 到 I27")
                     elif "产品4" in product_name:
                         if item_values[3]:
                             ws['H28'] = item_values[3]
                             management_count += 1
-                            self.log(f"[导入] 已导入 产品4 一正管理费: {item_values[3]} 到 H28")
                         if item_values[4]:
                             ws['I28'] = item_values[4]
                             management_count += 1
-                            self.log(f"[导入] 已导入 产品4 二正管理费: {item_values[4]} 到 I28")
             
             import_count += product_inventory_count
             
@@ -1128,19 +1115,15 @@ class LoginGUI:
                             if "市场1" in market_name:
                                 ws.cell(row=11, column=5 + col_idx - 1, value=item_values[col_idx])
                                 conversion_count += 1
-                                self.log(f"[导入] 已导入 市场1 产品{col_idx} 订货转化比例: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}11")
                             elif "市场2" in market_name:
                                 ws.cell(row=12, column=5 + col_idx - 1, value=item_values[col_idx])
                                 conversion_count += 1
-                                self.log(f"[导入] 已导入 市场2 产品{col_idx} 订货转化比例: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}12")
                             elif "市场3" in market_name:
                                 ws.cell(row=13, column=5 + col_idx - 1, value=item_values[col_idx])
                                 conversion_count += 1
-                                self.log(f"[导入] 已导入 市场3 产品{col_idx} 订货转化比例: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}13")
                             elif "市场4" in market_name:
                                 ws.cell(row=14, column=5 + col_idx - 1, value=item_values[col_idx])
                                 conversion_count += 1
-                                self.log(f"[导入] 已导入 市场4 产品{col_idx} 订货转化比例: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}14")
             
             import_count += conversion_count
             import_count += management_count
@@ -1155,15 +1138,12 @@ class LoginGUI:
                             if "机器" in item_name:
                                 ws.cell(row=17, column=5 + col_idx - 1, value=item_values[col_idx])
                                 production_count += 1
-                                self.log(f"[导入] 已导入 机器 产品{col_idx} 生产消耗: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}17")
                             elif "人力" in item_name:
                                 ws.cell(row=18, column=5 + col_idx - 1, value=item_values[col_idx])
                                 production_count += 1
-                                self.log(f"[导入] 已导入 人力 产品{col_idx} 生产消耗: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}18")
                             elif "原材料" in item_name:
                                 ws.cell(row=19, column=5 + col_idx - 1, value=item_values[col_idx])
                                 production_count += 1
-                                self.log(f"[导入] 已导入 原材料 产品{col_idx} 生产消耗: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}19")
             
             import_count += production_count
             
@@ -1175,15 +1155,12 @@ class LoginGUI:
                     if discount_count == 1:
                         ws['D26'] = item_values[0]
                         ws['E26'] = item_values[1]
-                        self.log(f"[导入] 已导入 原材料折扣1: {item_values[0]} 到 D26, {item_values[1]} 到 E26")
                     elif discount_count == 2:
                         ws['D27'] = item_values[0]
                         ws['E27'] = item_values[1]
-                        self.log(f"[导入] 已导入 原材料折扣2: {item_values[0]} 到 D27, {item_values[1]} 到 E27")
                     elif discount_count == 3:
                         ws['D28'] = item_values[0]
                         ws['E28'] = item_values[1]
-                        self.log(f"[导入] 已导入 原材料折扣3: {item_values[0]} 到 D28, {item_values[1]} 到 E28")
             
             import_count += discount_count
             wb.save(self.excel_file_path)
