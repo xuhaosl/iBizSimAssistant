@@ -1163,12 +1163,177 @@ class LoginGUI:
                         ws['E28'] = item_values[1]
             
             import_count += discount_count
+            
+            rd_count = 0
+            for item in self.grade_table.get_children():
+                item_values = self.grade_table.item(item, "values")
+                if item_values and len(item_values) >= 6:
+                    product_name = item_values[0]
+                    for col_idx in range(1, 6):
+                        if item_values[col_idx]:
+                            if "产品1" in product_name:
+                                ws.cell(row=31, column=5 + col_idx - 1, value=item_values[col_idx])
+                                rd_count += 1
+                            elif "产品2" in product_name:
+                                ws.cell(row=32, column=5 + col_idx - 1, value=item_values[col_idx])
+                                rd_count += 1
+                            elif "产品3" in product_name:
+                                ws.cell(row=33, column=5 + col_idx - 1, value=item_values[col_idx])
+                                rd_count += 1
+                            elif "产品4" in product_name:
+                                ws.cell(row=34, column=5 + col_idx - 1, value=item_values[col_idx])
+                                rd_count += 1
+                            elif "产品5" in product_name:
+                                ws.cell(row=35, column=5 + col_idx - 1, value=item_values[col_idx])
+                                rd_count += 1
+            
+            import_count += rd_count
+            
+            fixed_shipping_count = 0
+            shipping_items = self.shipping_table.get_children()
+            
+            if len(shipping_items) >= 4:
+                product1_item = shipping_items[0]
+                product1_values = list(self.shipping_table.item(product1_item, "values"))
+                if len(product1_values) >= 5:
+                    if product1_values[1]:
+                        ws['L5'] = product1_values[1]
+                        fixed_shipping_count += 1
+                    if product1_values[2]:
+                        ws['M5'] = product1_values[2]
+                        fixed_shipping_count += 1
+                    if product1_values[3]:
+                        ws['N5'] = product1_values[3]
+                        fixed_shipping_count += 1
+                    if product1_values[4]:
+                        ws['O5'] = product1_values[4]
+                        fixed_shipping_count += 1
+                
+                product2_item = shipping_items[1]
+                product2_values = list(self.shipping_table.item(product2_item, "values"))
+                if len(product2_values) >= 5:
+                    if product2_values[1]:
+                        ws['P5'] = product2_values[1]
+                        fixed_shipping_count += 1
+                    if product2_values[2]:
+                        ws['Q5'] = product2_values[2]
+                        fixed_shipping_count += 1
+                    if product2_values[3]:
+                        ws['R5'] = product2_values[3]
+                        fixed_shipping_count += 1
+                    if product2_values[4]:
+                        ws['S5'] = product2_values[4]
+                        fixed_shipping_count += 1
+                
+                product3_item = shipping_items[2]
+                product3_values = list(self.shipping_table.item(product3_item, "values"))
+                if len(product3_values) >= 5:
+                    if product3_values[1]:
+                        ws['L6'] = product3_values[1]
+                        fixed_shipping_count += 1
+                    if product3_values[2]:
+                        ws['M6'] = product3_values[2]
+                        fixed_shipping_count += 1
+                    if product3_values[3]:
+                        ws['N6'] = product3_values[3]
+                        fixed_shipping_count += 1
+                    if product3_values[4]:
+                        ws['O6'] = product3_values[4]
+                        fixed_shipping_count += 1
+                
+                product4_item = shipping_items[3]
+                product4_values = list(self.shipping_table.item(product4_item, "values"))
+                if len(product4_values) >= 5:
+                    if product4_values[1]:
+                        ws['P6'] = product4_values[1]
+                        fixed_shipping_count += 1
+                    if product4_values[2]:
+                        ws['Q6'] = product4_values[2]
+                        fixed_shipping_count += 1
+                    if product4_values[3]:
+                        ws['R6'] = product4_values[3]
+                        fixed_shipping_count += 1
+                    if product4_values[4]:
+                        ws['S6'] = product4_values[4]
+                        fixed_shipping_count += 1
+            
+            import_count += fixed_shipping_count
+            
+            variable_shipping_count = 0
+            shipping3_items = self.shipping_table3.get_children()
+            
+            if len(shipping3_items) >= 4:
+                product1_item = shipping3_items[0]
+                product1_values = list(self.shipping_table3.item(product1_item, "values"))
+                if len(product1_values) >= 5:
+                    if product1_values[1]:
+                        ws['L9'] = product1_values[1]
+                        variable_shipping_count += 1
+                    if product1_values[2]:
+                        ws['M9'] = product1_values[2]
+                        variable_shipping_count += 1
+                    if product1_values[3]:
+                        ws['N9'] = product1_values[3]
+                        variable_shipping_count += 1
+                    if product1_values[4]:
+                        ws['O9'] = product1_values[4]
+                        variable_shipping_count += 1
+                
+                product2_item = shipping3_items[1]
+                product2_values = list(self.shipping_table3.item(product2_item, "values"))
+                if len(product2_values) >= 5:
+                    if product2_values[1]:
+                        ws['P9'] = product2_values[1]
+                        variable_shipping_count += 1
+                    if product2_values[2]:
+                        ws['Q9'] = product2_values[2]
+                        variable_shipping_count += 1
+                    if product2_values[3]:
+                        ws['R9'] = product2_values[3]
+                        variable_shipping_count += 1
+                    if product2_values[4]:
+                        ws['S9'] = product2_values[4]
+                        variable_shipping_count += 1
+                
+                product3_item = shipping3_items[2]
+                product3_values = list(self.shipping_table3.item(product3_item, "values"))
+                if len(product3_values) >= 5:
+                    if product3_values[1]:
+                        ws['L10'] = product3_values[1]
+                        variable_shipping_count += 1
+                    if product3_values[2]:
+                        ws['M10'] = product3_values[2]
+                        variable_shipping_count += 1
+                    if product3_values[3]:
+                        ws['N10'] = product3_values[3]
+                        variable_shipping_count += 1
+                    if product3_values[4]:
+                        ws['O10'] = product3_values[4]
+                        variable_shipping_count += 1
+                
+                product4_item = shipping3_items[3]
+                product4_values = list(self.shipping_table3.item(product4_item, "values"))
+                if len(product4_values) >= 5:
+                    if product4_values[1]:
+                        ws['P10'] = product4_values[1]
+                        variable_shipping_count += 1
+                    if product4_values[2]:
+                        ws['Q10'] = product4_values[2]
+                        variable_shipping_count += 1
+                    if product4_values[3]:
+                        ws['R10'] = product4_values[3]
+                        variable_shipping_count += 1
+                    if product4_values[4]:
+                        ws['S10'] = product4_values[4]
+                        variable_shipping_count += 1
+            
+            import_count += variable_shipping_count
             wb.save(self.excel_file_path)
             wb.close()
             
             self.update_status(f"已导入 {import_count} 个参数值到Excel", color="green")
             self.log(f"[导入] 成功导入 {import_count} 个参数值到Excel文件")
-            messagebox.showinfo("成功", f"已成功导入 {import_count} 个参数值到Excel文件\n\n包括31个规则参数、{product_inventory_count}个成品库存费、{management_count}个管理费、{conversion_count}个订货转化比例、{production_count}个产品生产消耗和{discount_count}个原材料折扣")
+            messagebox.showinfo("成功", f"已成功导入 {import_count} 个参数值到Excel文件\n\n包括31个规则参数、{product_inventory_count}个成品库存费、{management_count}个管理费、{conversion_count}个订货转化比例、{production_count}个产品生产消耗、{discount_count}个原材料折扣、{rd_count}个研发投入、{fixed_shipping_count}个固定运费和{variable_shipping_count}个变动运费")
             
             try:
                 import os
