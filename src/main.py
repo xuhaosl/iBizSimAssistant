@@ -1054,6 +1054,7 @@ class LoginGUI:
                     self.log(f"[导入] 已导入 '{param}' 的值: {value}")
             
             product_inventory_count = 0
+            management_count = 0
             for item in self.product_table.get_children():
                 item_values = self.product_table.item(item, "values")
                 if item_values and len(item_values) >= 2 and item_values[1]:
@@ -1075,6 +1076,45 @@ class LoginGUI:
                         ws['E8'] = inventory_cost
                         product_inventory_count += 1
                         self.log(f"[导入] 已导入 产品4 成品库存费: {inventory_cost} 到 E8")
+                
+                if item_values and len(item_values) >= 5:
+                    product_name = item_values[0]
+                    if "产品1" in product_name:
+                        if item_values[3]:
+                            ws['H25'] = item_values[3]
+                            management_count += 1
+                            self.log(f"[导入] 已导入 产品1 一正管理费: {item_values[3]} 到 H25")
+                        if item_values[4]:
+                            ws['I25'] = item_values[4]
+                            management_count += 1
+                            self.log(f"[导入] 已导入 产品1 二正管理费: {item_values[4]} 到 I25")
+                    elif "产品2" in product_name:
+                        if item_values[3]:
+                            ws['H26'] = item_values[3]
+                            management_count += 1
+                            self.log(f"[导入] 已导入 产品2 一正管理费: {item_values[3]} 到 H26")
+                        if item_values[4]:
+                            ws['I26'] = item_values[4]
+                            management_count += 1
+                            self.log(f"[导入] 已导入 产品2 二正管理费: {item_values[4]} 到 I26")
+                    elif "产品3" in product_name:
+                        if item_values[3]:
+                            ws['H27'] = item_values[3]
+                            management_count += 1
+                            self.log(f"[导入] 已导入 产品3 一正管理费: {item_values[3]} 到 H27")
+                        if item_values[4]:
+                            ws['I27'] = item_values[4]
+                            management_count += 1
+                            self.log(f"[导入] 已导入 产品3 二正管理费: {item_values[4]} 到 I27")
+                    elif "产品4" in product_name:
+                        if item_values[3]:
+                            ws['H28'] = item_values[3]
+                            management_count += 1
+                            self.log(f"[导入] 已导入 产品4 一正管理费: {item_values[3]} 到 H28")
+                        if item_values[4]:
+                            ws['I28'] = item_values[4]
+                            management_count += 1
+                            self.log(f"[导入] 已导入 产品4 二正管理费: {item_values[4]} 到 I28")
             
             import_count += product_inventory_count
             
@@ -1103,6 +1143,7 @@ class LoginGUI:
                                 self.log(f"[导入] 已导入 市场4 产品{col_idx} 订货转化比例: {item_values[col_idx]} 到 {chr(68 + col_idx - 1)}14")
             
             import_count += conversion_count
+            import_count += management_count
             
             production_count = 0
             for item in self.production_table.get_children():
@@ -1150,7 +1191,7 @@ class LoginGUI:
             
             self.update_status(f"已导入 {import_count} 个参数值到Excel", color="green")
             self.log(f"[导入] 成功导入 {import_count} 个参数值到Excel文件")
-            messagebox.showinfo("成功", f"已成功导入 {import_count} 个参数值到Excel文件\n\n包括31个规则参数、{product_inventory_count}个成品库存费、{conversion_count}个订货转化比例、{production_count}个产品生产消耗和{discount_count}个原材料折扣")
+            messagebox.showinfo("成功", f"已成功导入 {import_count} 个参数值到Excel文件\n\n包括31个规则参数、{product_inventory_count}个成品库存费、{management_count}个管理费、{conversion_count}个订货转化比例、{production_count}个产品生产消耗和{discount_count}个原材料折扣")
             
             try:
                 import os
