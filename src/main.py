@@ -49,6 +49,8 @@ class LoginGUI:
         self.login_handler = None
         self.game_extractor = None
         self.settings = None
+        self.current_game_id = None
+        self.current_team_id = None
     
     def setup_ui(self):
         main_frame = ttk.Frame(self.root, padding="20")
@@ -227,6 +229,7 @@ class LoginGUI:
         
         notebook = ttk.Notebook(column2)
         notebook.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
+        self.notebook = notebook
         
         rules_tab = ttk.Frame(notebook)
         notebook.add(rules_tab, text="规则详情")
@@ -549,6 +552,8 @@ class LoginGUI:
         
         salary_coefficient_tab = ttk.Frame(notebook)
         notebook.add(salary_coefficient_tab, text="工资系数")
+        self.salary_coefficient_tab_index = notebook.index(salary_coefficient_tab)
+        notebook.tab(self.salary_coefficient_tab_index, state="disabled")
         
         salary_button_frame = ttk.Frame(salary_coefficient_tab)
         salary_button_frame.pack(fill=tk.X, pady=(5, 5))
@@ -564,6 +569,8 @@ class LoginGUI:
         
         initial_data_tab = ttk.Frame(notebook)
         notebook.add(initial_data_tab, text="初期数据")
+        self.initial_data_tab_index = notebook.index(initial_data_tab)
+        notebook.tab(self.initial_data_tab_index, state="disabled")
         
         initial_button_frame = ttk.Frame(initial_data_tab)
         initial_button_frame.pack(fill=tk.X, pady=(5, 5))
@@ -579,12 +586,20 @@ class LoginGUI:
         
         production_tool_tab = ttk.Frame(notebook)
         notebook.add(production_tool_tab, text="排产工具")
+        self.production_tool_tab_index = notebook.index(production_tool_tab)
+        notebook.tab(self.production_tool_tab_index, state="disabled")
         
         report_download_tab = ttk.Frame(notebook)
         notebook.add(report_download_tab, text="报表下载")
+        self.report_download_tab_index = notebook.index(report_download_tab)
+        notebook.tab(self.report_download_tab_index, state="disabled")
         
         submit_decision_tab = ttk.Frame(notebook)
         notebook.add(submit_decision_tab, text="提交决策")
+        self.submit_decision_tab_index = notebook.index(submit_decision_tab)
+        notebook.tab(self.submit_decision_tab_index, state="disabled")
+        
+        notebook.bind("<<NotebookTabChanged>>", self.on_tab_changed)
         
         standby_frame = ttk.LabelFrame(column3, text="待用", padding="10")
         standby_frame.pack(fill=tk.BOTH, expand=True)
@@ -828,6 +843,7 @@ class LoginGUI:
             
             game_id = game.get('比赛ID', '')
             game_name = game.get('比赛名称', 'Unknown')
+            self.current_game_id = game_id
             
             if game_url.startswith('/'):
                 game_url = f"https://www.ibizsim.cn{game_url}"
@@ -1335,6 +1351,13 @@ class LoginGUI:
             self.log(f"[导入] 成功导入 {import_count} 个参数值到Excel文件")
             messagebox.showinfo("成功", f"已成功导入 {import_count} 个参数值到Excel文件\n\n包括31个规则参数、{product_inventory_count}个成品库存费、{management_count}个管理费、{conversion_count}个订货转化比例、{production_count}个产品生产消耗、{discount_count}个原材料折扣、{rd_count}个研发投入、{fixed_shipping_count}个固定运费和{variable_shipping_count}个变动运费")
             
+            self.notebook.tab(self.salary_coefficient_tab_index, state="normal")
+            self.notebook.tab(self.initial_data_tab_index, state="normal")
+            self.notebook.tab(self.production_tool_tab_index, state="normal")
+            self.notebook.tab(self.report_download_tab_index, state="normal")
+            self.notebook.tab(self.submit_decision_tab_index, state="normal")
+            self.log("[导入] 已启用工资系数、初期数据、排产工具、报表下载、提交决策功能")
+            
             try:
                 import os
                 os.startfile(self.excel_file_path)
@@ -1349,6 +1372,27 @@ class LoginGUI:
             self.log(f"[错误] 导入规则到Excel失败: {e}")
             self.update_status("导入规则到Excel失败", color="red")
             messagebox.showerror("错误", f"导入规则到Excel失败：\n\n{e}")
+    
+    def on_tab_changed(self, event):
+        try:
+            current_tab_index = self.notebook.index(self.notebook.select())
+            
+            if current_tab_index in [self.salary_coefficient_tab_index, self.initial_data_tab_index]:
+                if not self.current_game_id or not self.current_team_id:
+                    self.log("[Tab切换] 缺少game_id或team_id，无法访问报表页面")
+                    return
+                
+                url = f"https://www.ibizsim.cn/games/private_report?gameid={self.current_game_id}&teamid={self.current_team_id}"
+                self.log(f"[Tab切换] 访问报表页面: {url}")
+                
+                if not self.playwright_thread or not self.playwright_thread.is_alive():
+                    self.log("[错误] Playwright线程未运行")
+                    return
+                
+                self.playwright_queue.append(('extract_periodid', url))
+                    
+        except Exception as e:
+            self.log(f"[错误] Tab切换处理失败: {e}")
     
     def extract_quality_rates(self):
         try:
@@ -2669,8 +2713,16 @@ class LoginGUI:
                                         else:
                                             self.log(f"[队伍] 未检测到队伍名称")
                                             self.team_name = ""
+                                        
+                                        teamid_pattern = r"function\s+teamid\s*\(\s*\)\s*\{\s*return\s+(\d+)\s*;\s*\}"
+                                        teamid_match = re.search(teamid_pattern, page_content)
+                                        if teamid_match:
+                                            self.current_team_id = teamid_match.group(1)
+                                            self.log(f"[队伍] 检测到team_id：{self.current_team_id}")
+                                        else:
+                                            self.log(f"[队伍] 未检测到team_id")
                                 except Exception as e:
-                                    self.log(f"[队伍] 提取队伍名称失败: {e}")
+                                    self.log(f"[队伍] 提取队伍信息失败: {e}")
                                     self.team_name = ""
                                     
                             self.root.after(0, self.bring_to_front)
@@ -2685,6 +2737,34 @@ class LoginGUI:
                     elif op_type == 'extract_params':
                         param_values = self.extract_rules_parameters_in_thread()
                         self.root.after(0, lambda: self.update_status("规则提取完成，请打开Excel文件后点击导入规则", color="green"))
+                    elif op_type == 'extract_periodid':
+                        _, url = operation
+                        self.log(f"[Playwright] 执行提取period_id: {url}")
+                        
+                        if not self.page_handler:
+                            self.log("[错误] page_handler为None")
+                            return
+                        
+                        page = self.page_handler.get_page()
+                        if not page:
+                            self.log("[错误] page为None")
+                            return
+                        
+                        page.goto(url)
+                        page.wait_for_load_state('networkidle')
+                        
+                        html_content = page.content()
+                        
+                        import re
+                        periodid_pattern = r'periodid=(\d+)'
+                        periodid_match = re.search(periodid_pattern, html_content)
+                        
+                        if periodid_match:
+                            period_id = periodid_match.group(1)
+                            report_url = f"https://www.ibizsim.cn/games/private_report?gameid={self.current_game_id}&periodid={period_id}&teamid={self.current_team_id}"
+                            self.log(f"[Tab切换] 第8期报表完整URL: {report_url}")
+                        else:
+                            self.log("[Tab切换] 未找到period_id")
                     elif op_type == 'stop':
                         self.log("[Playwright] 执行停止操作")
                         self.cleanup_browser()
