@@ -51,6 +51,7 @@ class LoginGUI:
         self.settings = None
         self.current_game_id = None
         self.current_team_id = None
+        self.period_8_url = None
     
     def setup_ui(self):
         main_frame = ttk.Frame(self.root, padding="20")
@@ -575,6 +576,15 @@ class LoginGUI:
         initial_button_frame = ttk.Frame(initial_data_tab)
         initial_button_frame.pack(fill=tk.X, pady=(5, 5))
         
+        extract_initial_report_button = ttk.Button(
+            initial_button_frame,
+            text="提取初期报表",
+            command=self.extract_initial_report,
+            state=tk.DISABLED,
+            width=12
+        )
+        extract_initial_report_button.pack(side=tk.LEFT, padx=(0, 2))
+        
         paste_button = ttk.Button(
             initial_button_frame,
             text="粘贴初期报表",
@@ -618,6 +628,7 @@ class LoginGUI:
         self.copy_button = copy_button
         self.import_button = import_button
         self.extract_button = extract_button
+        self.extract_initial_report_button = extract_initial_report_button
         self.paste_button = paste_button
         
         self.log_text = scrolledtext.ScrolledText(
@@ -1411,6 +1422,33 @@ class LoginGUI:
             self.log(f"[错误] 提取前八期正品率失败: {e}")
             self.update_status("提取前八期正品率失败", color="red")
             messagebox.showerror("错误", f"提取前八期正品率失败：\n\n{e}")
+    
+    def extract_initial_report(self):
+        try:
+            if not self.page_handler:
+                messagebox.showerror("错误", "浏览器未启动，请先登录")
+                self.update_status("浏览器未启动", color="red")
+                self.log("[错误] page_handler为None")
+                return
+            
+            if not self.period_8_url:
+                messagebox.showerror("错误", "第8期报表URL未提取，请先切换到初期数据tab")
+                self.log("[错误] 第8期报表URL未提取")
+                return
+            
+            self.log(f"[报表] 正在跳转到第8期报表页面...")
+            self.update_status("正在跳转到第8期报表页面", color="blue")
+            
+            if not self.playwright_thread or not self.playwright_thread.is_alive():
+                self.log("[错误] Playwright线程未运行")
+                return
+            
+            self.playwright_queue.append(('navigate_period8', self.period_8_url))
+            
+        except Exception as e:
+            self.log(f"[错误] 提取初期报表失败: {e}")
+            self.update_status("提取初期报表失败", color="red")
+            messagebox.showerror("错误", f"提取初期报表失败：\n\n{e}")
     
     def paste_initial_report(self):
         try:
@@ -2756,15 +2794,34 @@ class LoginGUI:
                         html_content = page.content()
                         
                         import re
-                        periodid_pattern = r'periodid=(\d+)'
-                        periodid_match = re.search(periodid_pattern, html_content)
+                        pattern = r'<a[^>]*href="[^"]*periodid=(\d+)[^"]*"[^>]*>8</a>'
+                        match = re.search(pattern, html_content)
                         
-                        if periodid_match:
-                            period_id = periodid_match.group(1)
+                        if match:
+                            period_id = match.group(1)
                             report_url = f"https://www.ibizsim.cn/games/private_report?gameid={self.current_game_id}&periodid={period_id}&teamid={self.current_team_id}"
+                            self.period_8_url = report_url
                             self.log(f"[Tab切换] 第8期报表完整URL: {report_url}")
+                            self.root.after(0, lambda: self.extract_initial_report_button.config(state=tk.NORMAL))
                         else:
-                            self.log("[Tab切换] 未找到period_id")
+                            self.log("[Tab切换] 未找到第8期period_id")
+                    elif op_type == 'navigate_period8':
+                        _, url = operation
+                        self.log(f"[Playwright] 执行跳转到第8期报表: {url}")
+                        
+                        if not self.page_handler:
+                            self.log("[错误] page_handler为None")
+                            return
+                        
+                        page = self.page_handler.get_page()
+                        if not page:
+                            self.log("[错误] page为None")
+                            return
+                        
+                        page.goto(url)
+                        page.wait_for_load_state('networkidle')
+                        self.log(f"[报表] 已跳转到第8期报表页面")
+                        self.root.after(0, lambda: self.update_status("已跳转到第8期报表页面", color="green"))
                     elif op_type == 'stop':
                         self.log("[Playwright] 执行停止操作")
                         self.cleanup_browser()
