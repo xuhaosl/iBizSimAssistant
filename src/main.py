@@ -369,7 +369,7 @@ class LoginGUI:
             show="headings",
             height=3
         )
-        discount_table.heading("col1", text="")
+        discount_table.heading("col1", text="定购量 >=")
         discount_table.heading("col2", text="原材料折扣")
         discount_table.column("col1", width=90, anchor=tk.CENTER)
         discount_table.column("col2", width=40, anchor=tk.W)
@@ -627,7 +627,7 @@ class LoginGUI:
             height=6
         )
         
-        networth_headers = ["净资产项目", "", "金额（元）", "累计（元）"]
+        networth_headers = ["期末净资产项目", "", "金额（元）", "累计（元）"]
         for i, header in enumerate(networth_headers, 1):
             networth_report_table.heading(f"col{i}", text=header)
             networth_report_table.column(f"col{i}", width=150, anchor=tk.CENTER)
@@ -650,7 +650,7 @@ class LoginGUI:
             height=6
         )
         
-        enterprise_headers = ["企业状况指标", "数值", "备注"]
+        enterprise_headers = ["期末企业状况指标", "数值", "排名"]
         for i, header in enumerate(enterprise_headers, 1):
             enterprise_status_table.heading(f"col{i}", text=header)
             enterprise_status_table.column(f"col{i}", width=200, anchor=tk.CENTER)
@@ -673,7 +673,7 @@ class LoginGUI:
             height=6
         )
         
-        product_headers = ["产品", "期初库存", "期末库存", "期初在制品", "期末在制品", "期初原材料", "期末原材料", "期初在途", "期末在途"]
+        product_headers = ["产品", "市场", "上期预订（件）", "本期需求（件）", "本期销售（件）", "市场份额（%）", "下期订货（件）", "期末库存（件）", "废品（件）"]
         for i, header in enumerate(product_headers, 1):
             product_status_table.heading(f"col{i}", text=header)
             product_status_table.column(f"col{i}", width=80, anchor=tk.CENTER)
@@ -1601,7 +1601,7 @@ class LoginGUI:
             for item in self.product_status_table.get_children():
                 self.product_status_table.delete(item)
         except Exception as e:
-            self.log(f"[错误] 清空期末产品状况表失败: {e}")
+            self.log(f"[错误] 清空产品状况表失败: {e}")
     
     def insert_product_status_row(self, row_data):
         try:
@@ -1612,7 +1612,18 @@ class LoginGUI:
             
             self.product_status_table.insert("", tk.END, values=row_data)
         except Exception as e:
-            self.log(f"[错误] 插入期末产品状况表行失败: {e}")
+            self.log(f"[错误] 插入产品状况表行失败: {e}")
+    
+    def insert_product_status_row_direct(self, row_data):
+        try:
+            while len(row_data) < 9:
+                row_data.append("")
+            
+            row_data = row_data[:9]
+            
+            self.product_status_table.insert("", tk.END, values=row_data)
+        except Exception as e:
+            pass
     
     def paste_initial_report(self):
         try:
@@ -3058,7 +3069,7 @@ class LoginGUI:
                                             try:
                                                 enterprise_tab = page.query_selector('a:has-text("企业状况指标")')
                                                 if not enterprise_tab:
-                                                    enterprise_tab = page.query_selector('a[href="#private_report_enterprise_status"]')
+                                                    enterprise_tab = page.query_selector('a[href="#private_report_condition"]')
                                                 
                                                 if enterprise_tab:
                                                     enterprise_tab.click()
@@ -3068,7 +3079,7 @@ class LoginGUI:
                                                     html_content = page.content()
                                                     soup = BeautifulSoup(html_content, 'html.parser')
                                                     
-                                                    enterprise_table = soup.select_one('div#private_report_enterprise_status table.table.table-bordered.table-striped')
+                                                    enterprise_table = soup.select_one('div#private_report_condition table.table.table-bordered.table-striped')
                                                     
                                                     if enterprise_table:
                                                         rows = enterprise_table.find_all('tr')
@@ -3095,9 +3106,9 @@ class LoginGUI:
                                                 self.log(f"[报表] 切换到企业状况指标tab失败: {e}")
                                             
                                             try:
-                                                product_tab = page.query_selector('a:has-text("期末产品状况")')
+                                                product_tab = page.query_selector('a:has-text("产品状况")')
                                                 if not product_tab:
-                                                    product_tab = page.query_selector('a[href="#private_report_product_status"]')
+                                                    product_tab = page.query_selector('a[href="#private_report_product"]')
                                                 
                                                 if product_tab:
                                                     product_tab.click()
@@ -3107,32 +3118,40 @@ class LoginGUI:
                                                     html_content = page.content()
                                                     soup = BeautifulSoup(html_content, 'html.parser')
                                                     
-                                                    product_table = soup.select_one('div#private_report_product_status table.table.table-bordered.table-striped')
+                                                    product_tables = soup.select('div#private_report_product table.table.table-bordered.table-striped')
                                                     
-                                                    if product_table:
-                                                        rows = product_table.find_all('tr')
-                                                        product_data = []
+                                                    if product_tables:
+                                                        total_rows = 0
                                                         
-                                                        for row in rows:
-                                                            cells = row.find_all(['th', 'td'])
-                                                            row_data = [cell.get_text(strip=True) for cell in cells]
-                                                            if row_data:
-                                                                product_data.append(row_data)
+                                                        self.root.after(0, lambda: self.clear_product_status_table())
                                                         
-                                                        if product_data:
-                                                            self.root.after(0, lambda: self.clear_product_status_table())
+                                                        for idx, table in enumerate(product_tables):
+                                                            rows = table.find_all('tr')
+                                                            product_data = []
                                                             
-                                                            for row_data in product_data[1:]:
-                                                                self.root.after(0, lambda rd=row_data: self.insert_product_status_row(rd))
+                                                            for row in rows:
+                                                                cells = row.find_all(['th', 'td'])
+                                                                row_data = [cell.get_text(strip=True) for cell in cells]
+                                                                if row_data:
+                                                                    product_data.append(row_data)
                                                             
-                                                            self.log(f"[报表] 已提取期末产品状况表 {len(product_data)-1} 行数据")
-                                                            self.root.after(0, lambda: self.update_status(f"已提取第8期报表数据", color="green"))
+                                                            if idx == 0:
+                                                                for row_data in product_data[1:]:
+                                                                    self.root.after(0, lambda rd=row_data: self.insert_product_status_row_direct(rd))
+                                                                    total_rows += 1
+                                                            else:
+                                                                for row_data in product_data:
+                                                                    self.root.after(0, lambda rd=row_data: self.insert_product_status_row_direct(rd))
+                                                                    total_rows += 1
+                                                        
+                                                        self.log(f"[报表] 已提取期末产品状况表 {total_rows} 行数据")
+                                                        self.root.after(0, lambda: self.update_status(f"已提取第8期报表数据", color="green"))
                                                     else:
                                                         self.log("[报表] 未找到期末产品状况表")
                                                 else:
-                                                    self.log("[报表] 未找到期末产品状况tab链接")
+                                                    self.log("[报表] 未找到产品状况tab链接")
                                             except Exception as e:
-                                                self.log(f"[报表] 切换到期末产品状况tab失败: {e}")
+                                                self.log(f"[报表] 切换到产品状况tab失败: {e}")
                                     else:
                                         self.log("[报表] 未找到净资产表")
                                 else:
