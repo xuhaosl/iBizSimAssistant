@@ -595,13 +595,13 @@ class LoginGUI:
         paste_button.pack(side=tk.LEFT)
         
         initial_report_frame = ttk.Frame(initial_data_tab)
-        initial_report_frame.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
+        initial_report_frame.pack(fill=tk.BOTH, expand=True, pady=(2, 2))
         
         initial_report_table = ttk.Treeview(
             initial_report_frame,
             columns=("col1", "col2", "col3", "col4", "col5"),
             show="headings",
-            height=10
+            height=6
         )
         
         headers = ["第8期会计项目", "收支（元）", "本期收入（元）", "本期成本（元）", "现金累计（元）"]
@@ -618,13 +618,13 @@ class LoginGUI:
         self.initial_report_table = initial_report_table
         
         networth_report_frame = ttk.Frame(initial_data_tab)
-        networth_report_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 5))
+        networth_report_frame.pack(fill=tk.BOTH, expand=True, pady=(2, 2))
         
         networth_report_table = ttk.Treeview(
             networth_report_frame,
             columns=("col1", "col2", "col3", "col4"),
             show="headings",
-            height=10
+            height=6
         )
         
         networth_headers = ["净资产项目", "", "金额（元）", "累计（元）"]
@@ -641,13 +641,13 @@ class LoginGUI:
         self.networth_report_table = networth_report_table
         
         enterprise_status_frame = ttk.Frame(initial_data_tab)
-        enterprise_status_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 5))
+        enterprise_status_frame.pack(fill=tk.BOTH, expand=True, pady=(2, 2))
         
         enterprise_status_table = ttk.Treeview(
             enterprise_status_frame,
             columns=("col1", "col2", "col3"),
             show="headings",
-            height=10
+            height=6
         )
         
         enterprise_headers = ["企业状况指标", "数值", "备注"]
@@ -664,13 +664,13 @@ class LoginGUI:
         self.enterprise_status_table = enterprise_status_table
         
         product_status_frame = ttk.Frame(initial_data_tab)
-        product_status_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 5))
+        product_status_frame.pack(fill=tk.BOTH, expand=True, pady=(2, 2))
         
         product_status_table = ttk.Treeview(
             product_status_frame,
             columns=("col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9"),
             show="headings",
-            height=10
+            height=6
         )
         
         product_headers = ["产品", "期初库存", "期末库存", "期初在制品", "期末在制品", "期初原材料", "期末原材料", "期初在途", "期末在途"]
