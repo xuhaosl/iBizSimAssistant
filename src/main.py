@@ -594,6 +594,98 @@ class LoginGUI:
         )
         paste_button.pack(side=tk.LEFT)
         
+        initial_report_frame = ttk.Frame(initial_data_tab)
+        initial_report_frame.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
+        
+        initial_report_table = ttk.Treeview(
+            initial_report_frame,
+            columns=("col1", "col2", "col3", "col4", "col5"),
+            show="headings",
+            height=10
+        )
+        
+        headers = ["第8期会计项目", "收支（元）", "本期收入（元）", "本期成本（元）", "现金累计（元）"]
+        for i, header in enumerate(headers, 1):
+            initial_report_table.heading(f"col{i}", text=header)
+            initial_report_table.column(f"col{i}", width=120, anchor=tk.CENTER)
+        
+        initial_report_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        initial_report_scrollbar = ttk.Scrollbar(initial_report_frame, orient=tk.VERTICAL, command=initial_report_table.yview)
+        initial_report_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        initial_report_table.config(yscrollcommand=initial_report_scrollbar.set)
+        
+        self.initial_report_table = initial_report_table
+        
+        networth_report_frame = ttk.Frame(initial_data_tab)
+        networth_report_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 5))
+        
+        networth_report_table = ttk.Treeview(
+            networth_report_frame,
+            columns=("col1", "col2", "col3", "col4"),
+            show="headings",
+            height=10
+        )
+        
+        networth_headers = ["净资产项目", "", "金额（元）", "累计（元）"]
+        for i, header in enumerate(networth_headers, 1):
+            networth_report_table.heading(f"col{i}", text=header)
+            networth_report_table.column(f"col{i}", width=150, anchor=tk.CENTER)
+        
+        networth_report_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        networth_report_scrollbar = ttk.Scrollbar(networth_report_frame, orient=tk.VERTICAL, command=networth_report_table.yview)
+        networth_report_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        networth_report_table.config(yscrollcommand=networth_report_scrollbar.set)
+        
+        self.networth_report_table = networth_report_table
+        
+        enterprise_status_frame = ttk.Frame(initial_data_tab)
+        enterprise_status_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 5))
+        
+        enterprise_status_table = ttk.Treeview(
+            enterprise_status_frame,
+            columns=("col1", "col2", "col3"),
+            show="headings",
+            height=10
+        )
+        
+        enterprise_headers = ["企业状况指标", "数值", "备注"]
+        for i, header in enumerate(enterprise_headers, 1):
+            enterprise_status_table.heading(f"col{i}", text=header)
+            enterprise_status_table.column(f"col{i}", width=200, anchor=tk.CENTER)
+        
+        enterprise_status_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        enterprise_status_scrollbar = ttk.Scrollbar(enterprise_status_frame, orient=tk.VERTICAL, command=enterprise_status_table.yview)
+        enterprise_status_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        enterprise_status_table.config(yscrollcommand=enterprise_status_scrollbar.set)
+        
+        self.enterprise_status_table = enterprise_status_table
+        
+        product_status_frame = ttk.Frame(initial_data_tab)
+        product_status_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 5))
+        
+        product_status_table = ttk.Treeview(
+            product_status_frame,
+            columns=("col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9"),
+            show="headings",
+            height=10
+        )
+        
+        product_headers = ["产品", "期初库存", "期末库存", "期初在制品", "期末在制品", "期初原材料", "期末原材料", "期初在途", "期末在途"]
+        for i, header in enumerate(product_headers, 1):
+            product_status_table.heading(f"col{i}", text=header)
+            product_status_table.column(f"col{i}", width=80, anchor=tk.CENTER)
+        
+        product_status_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        product_status_scrollbar = ttk.Scrollbar(product_status_frame, orient=tk.VERTICAL, command=product_status_table.yview)
+        product_status_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        product_status_table.config(yscrollcommand=product_status_scrollbar.set)
+        
+        self.product_status_table = product_status_table
+        
         production_tool_tab = ttk.Frame(notebook)
         notebook.add(production_tool_tab, text="排产工具")
         self.production_tool_tab_index = notebook.index(production_tool_tab)
@@ -1449,6 +1541,78 @@ class LoginGUI:
             self.log(f"[错误] 提取初期报表失败: {e}")
             self.update_status("提取初期报表失败", color="red")
             messagebox.showerror("错误", f"提取初期报表失败：\n\n{e}")
+    
+    def clear_initial_report_table(self):
+        try:
+            for item in self.initial_report_table.get_children():
+                self.initial_report_table.delete(item)
+        except Exception as e:
+            self.log(f"[错误] 清空初期报表表格失败: {e}")
+    
+    def insert_initial_report_row(self, row_data):
+        try:
+            while len(row_data) < 5:
+                row_data.append("")
+            
+            row_data = row_data[:5]
+            
+            self.initial_report_table.insert("", tk.END, values=row_data)
+        except Exception as e:
+            self.log(f"[错误] 插入初期报表行失败: {e}")
+    
+    def clear_networth_report_table(self):
+        try:
+            for item in self.networth_report_table.get_children():
+                self.networth_report_table.delete(item)
+        except Exception as e:
+            self.log(f"[错误] 清空净资产表失败: {e}")
+    
+    def insert_networth_report_row(self, row_data):
+        try:
+            while len(row_data) < 4:
+                row_data.append("")
+            
+            row_data = row_data[:4]
+            
+            self.networth_report_table.insert("", tk.END, values=row_data)
+        except Exception as e:
+            self.log(f"[错误] 插入净资产表行失败: {e}")
+    
+    def clear_enterprise_status_table(self):
+        try:
+            for item in self.enterprise_status_table.get_children():
+                self.enterprise_status_table.delete(item)
+        except Exception as e:
+            self.log(f"[错误] 清空企业状况指标表失败: {e}")
+    
+    def insert_enterprise_status_row(self, row_data):
+        try:
+            while len(row_data) < 3:
+                row_data.append("")
+            
+            row_data = row_data[:3]
+            
+            self.enterprise_status_table.insert("", tk.END, values=row_data)
+        except Exception as e:
+            self.log(f"[错误] 插入企业状况指标表行失败: {e}")
+    
+    def clear_product_status_table(self):
+        try:
+            for item in self.product_status_table.get_children():
+                self.product_status_table.delete(item)
+        except Exception as e:
+            self.log(f"[错误] 清空期末产品状况表失败: {e}")
+    
+    def insert_product_status_row(self, row_data):
+        try:
+            while len(row_data) < 9:
+                row_data.append("")
+            
+            row_data = row_data[:9]
+            
+            self.product_status_table.insert("", tk.END, values=row_data)
+        except Exception as e:
+            self.log(f"[错误] 插入期末产品状况表行失败: {e}")
     
     def paste_initial_report(self):
         try:
@@ -2821,7 +2985,164 @@ class LoginGUI:
                         page.goto(url)
                         page.wait_for_load_state('networkidle')
                         self.log(f"[报表] 已跳转到第8期报表页面")
-                        self.root.after(0, lambda: self.update_status("已跳转到第8期报表页面", color="green"))
+                        
+                        try:
+                            html_content = page.content()
+                            
+                            from bs4 import BeautifulSoup
+                            soup = BeautifulSoup(html_content, 'html.parser')
+                            
+                            table = soup.select_one('div#account table.table.table-bordered.table-striped')
+                            
+                            if table:
+                                rows = table.find_all('tr')
+                                table_data = []
+                                
+                                for row in rows:
+                                    cells = row.find_all(['th', 'td'])
+                                    row_data = [cell.get_text(strip=True) for cell in cells]
+                                    if row_data:
+                                        table_data.append(row_data)
+                                
+                                if table_data:
+                                    headers = table_data[0]
+                                    while len(headers) < 5:
+                                        headers.append("")
+                                    headers = headers[:5]
+                                    
+                                    for i, header in enumerate(headers, 1):
+                                        self.root.after(0, lambda h=header, i=i: self.initial_report_table.heading(f"col{i}", text=h))
+                                    
+                                    self.root.after(0, lambda: self.clear_initial_report_table())
+                                    
+                                    for row_data in table_data[1:]:
+                                        self.root.after(0, lambda rd=row_data: self.insert_initial_report_row(rd))
+                                    
+                                    self.log(f"[报表] 已提取会计项目表 {len(table_data)-1} 行数据")
+                            else:
+                                self.log("[报表] 未找到会计项目表")
+                            
+                            try:
+                                networth_tab = page.query_selector('a:has-text("净资产")')
+                                if not networth_tab:
+                                    networth_tab = page.query_selector('a[href="#private_report_networth"]')
+                                
+                                if networth_tab:
+                                    networth_tab.click()
+                                    page.wait_for_timeout(1000)
+                                    self.log("[报表] 已切换到净资产表tab")
+                                    
+                                    html_content = page.content()
+                                    soup = BeautifulSoup(html_content, 'html.parser')
+                                    
+                                    networth_table = soup.select_one('div#private_report_networth table.table.table-bordered.table-striped')
+                                    
+                                    if networth_table:
+                                        rows = networth_table.find_all('tr')
+                                        networth_data = []
+                                        
+                                        for row in rows:
+                                            cells = row.find_all(['th', 'td'])
+                                            row_data = [cell.get_text(strip=True) for cell in cells]
+                                            if row_data:
+                                                networth_data.append(row_data)
+                                        
+                                        if networth_data:
+                                            self.root.after(0, lambda: self.clear_networth_report_table())
+                                            
+                                            for row_data in networth_data[1:]:
+                                                self.root.after(0, lambda rd=row_data: self.insert_networth_report_row(rd))
+                                            
+                                            self.log(f"[报表] 已提取净资产表 {len(networth_data)-1} 行数据")
+                                            
+                                            try:
+                                                enterprise_tab = page.query_selector('a:has-text("企业状况指标")')
+                                                if not enterprise_tab:
+                                                    enterprise_tab = page.query_selector('a[href="#private_report_enterprise_status"]')
+                                                
+                                                if enterprise_tab:
+                                                    enterprise_tab.click()
+                                                    page.wait_for_timeout(1000)
+                                                    self.log("[报表] 已切换到企业状况指标tab")
+                                                    
+                                                    html_content = page.content()
+                                                    soup = BeautifulSoup(html_content, 'html.parser')
+                                                    
+                                                    enterprise_table = soup.select_one('div#private_report_enterprise_status table.table.table-bordered.table-striped')
+                                                    
+                                                    if enterprise_table:
+                                                        rows = enterprise_table.find_all('tr')
+                                                        enterprise_data = []
+                                                        
+                                                        for row in rows:
+                                                            cells = row.find_all(['th', 'td'])
+                                                            row_data = [cell.get_text(strip=True) for cell in cells]
+                                                            if row_data:
+                                                                enterprise_data.append(row_data)
+                                                        
+                                                        if enterprise_data:
+                                                            self.root.after(0, lambda: self.clear_enterprise_status_table())
+                                                            
+                                                            for row_data in enterprise_data[1:]:
+                                                                self.root.after(0, lambda rd=row_data: self.insert_enterprise_status_row(rd))
+                                                            
+                                                            self.log(f"[报表] 已提取企业状况指标表 {len(enterprise_data)-1} 行数据")
+                                                    else:
+                                                        self.log("[报表] 未找到企业状况指标表")
+                                                else:
+                                                    self.log("[报表] 未找到企业状况指标tab链接")
+                                            except Exception as e:
+                                                self.log(f"[报表] 切换到企业状况指标tab失败: {e}")
+                                            
+                                            try:
+                                                product_tab = page.query_selector('a:has-text("期末产品状况")')
+                                                if not product_tab:
+                                                    product_tab = page.query_selector('a[href="#private_report_product_status"]')
+                                                
+                                                if product_tab:
+                                                    product_tab.click()
+                                                    page.wait_for_timeout(1000)
+                                                    self.log("[报表] 已切换到期末产品状况tab")
+                                                    
+                                                    html_content = page.content()
+                                                    soup = BeautifulSoup(html_content, 'html.parser')
+                                                    
+                                                    product_table = soup.select_one('div#private_report_product_status table.table.table-bordered.table-striped')
+                                                    
+                                                    if product_table:
+                                                        rows = product_table.find_all('tr')
+                                                        product_data = []
+                                                        
+                                                        for row in rows:
+                                                            cells = row.find_all(['th', 'td'])
+                                                            row_data = [cell.get_text(strip=True) for cell in cells]
+                                                            if row_data:
+                                                                product_data.append(row_data)
+                                                        
+                                                        if product_data:
+                                                            self.root.after(0, lambda: self.clear_product_status_table())
+                                                            
+                                                            for row_data in product_data[1:]:
+                                                                self.root.after(0, lambda rd=row_data: self.insert_product_status_row(rd))
+                                                            
+                                                            self.log(f"[报表] 已提取期末产品状况表 {len(product_data)-1} 行数据")
+                                                            self.root.after(0, lambda: self.update_status(f"已提取第8期报表数据", color="green"))
+                                                    else:
+                                                        self.log("[报表] 未找到期末产品状况表")
+                                                else:
+                                                    self.log("[报表] 未找到期末产品状况tab链接")
+                                            except Exception as e:
+                                                self.log(f"[报表] 切换到期末产品状况tab失败: {e}")
+                                    else:
+                                        self.log("[报表] 未找到净资产表")
+                                else:
+                                    self.log("[报表] 未找到净资产表tab链接")
+                            except Exception as e:
+                                self.log(f"[报表] 切换到净资产表tab失败: {e}")
+                                
+                        except Exception as e:
+                            self.log(f"[报表] 提取表格数据失败: {e}")
+                            self.root.after(0, lambda: self.update_status("提取表格数据失败", color="red"))
                     elif op_type == 'stop':
                         self.log("[Playwright] 执行停止操作")
                         self.cleanup_browser()
