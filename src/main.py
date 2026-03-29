@@ -778,8 +778,7 @@ class LoginGUI:
                     if has_rules:
                         self.import_button.config(state=tk.NORMAL)
                         self.extract_button.config(state=tk.NORMAL)
-                        self.paste_button.config(state=tk.NORMAL)
-                        self.log(f"[文件] 规则已复制，已启用导入、提取和粘贴按钮")
+                        self.log(f"[文件] 规则已复制，已启用导入和提取按钮")
                     else:
                         self.import_button.config(state=tk.DISABLED)
                         self.extract_button.config(state=tk.DISABLED)
@@ -1627,16 +1626,126 @@ class LoginGUI:
     
     def paste_initial_report(self):
         try:
-            if not self.page_handler:
-                messagebox.showerror("错误", "浏览器未启动，请先登录")
-                self.update_status("浏览器未启动", color="red")
-                self.log("[错误] page_handler为None")
+            if not self.excel_file_path:
+                messagebox.showerror("错误", "请先选择Excel文件")
+                self.log("[错误] Excel文件路径为空")
                 return
-                
+            
             self.log("[报表] 开始粘贴初期报表...")
             self.update_status("正在粘贴初期报表", color="blue")
             
-            messagebox.showinfo("提示", "初期报表粘贴功能开发中...")
+            from openpyxl import load_workbook
+            
+            file_ext = self.excel_file_path.lower().split('.')[-1]
+            keep_vba = (file_ext == 'xlsm')
+            
+            try:
+                wb = load_workbook(self.excel_file_path, keep_vba=keep_vba)
+                self.log("[报表] 成功打开Excel文件")
+            except PermissionError as e:
+                self.log(f"[报表] 文件权限错误: {e}")
+                messagebox.showerror("错误", f"无法打开Excel文件：\n\n文件可能正在被其他程序使用，请关闭该文件后重试。")
+                self.update_status("粘贴初期报表失败", color="red")
+                return
+            except Exception as e:
+                self.log(f"[报表] 打开Excel文件失败: {e}")
+                messagebox.showerror("错误", f"打开Excel文件失败：\n\n{e}")
+                self.update_status("粘贴初期报表失败", color="red")
+                return
+            
+            if "初期" not in wb.sheetnames:
+                ws = wb.create_sheet("初期")
+                self.log("[报表] 已创建'初期'sheet")
+            else:
+                ws = wb["初期"]
+            
+            table_items = self.initial_report_table.get_children()
+            
+            if not table_items:
+                wb.close()
+                messagebox.showerror("错误", "初期报表数据为空，请先提取初期报表")
+                self.log("[错误] 初期报表数据为空")
+                return
+            
+            row_count = 0
+            for idx, item in enumerate(table_items):
+                values = self.initial_report_table.item(item, "values")
+                if values:
+                    excel_row = 6 + idx
+                    if excel_row > 42:
+                        break
+                    
+                    for col_idx, value in enumerate(values[:5]):
+                        col_letter = chr(65 + col_idx)
+                        ws[f"{col_letter}{excel_row}"] = value
+                    
+                    row_count += 1
+            
+            networth_items = self.networth_report_table.get_children()
+            networth_count = 0
+            for idx, item in enumerate(networth_items):
+                values = self.networth_report_table.item(item, "values")
+                if values:
+                    excel_row = 6 + idx
+                    if excel_row > 18:
+                        break
+                    
+                    for col_idx, value in enumerate(values[:4]):
+                        col_letter = chr(71 + col_idx)
+                        ws[f"{col_letter}{excel_row}"] = value
+                    
+                    networth_count += 1
+            
+            enterprise_items = self.enterprise_status_table.get_children()
+            enterprise_count = 0
+            for idx, item in enumerate(enterprise_items):
+                values = self.enterprise_status_table.item(item, "values")
+                if values:
+                    excel_row = 25 + idx
+                    if excel_row > 42:
+                        break
+                    
+                    for col_idx, value in enumerate(values[:3]):
+                        col_letter = chr(71 + col_idx)
+                        ws[f"{col_letter}{excel_row}"] = value
+                    
+                    enterprise_count += 1
+            
+            product_items = self.product_status_table.get_children()
+            product_count_1 = 0
+            product_count_2 = 0
+            for idx, item in enumerate(product_items):
+                values = self.product_status_table.item(item, "values")
+                if values:
+                    if idx < 16:
+                        excel_row = 6 + idx
+                        for col_idx, value in enumerate(values[:9]):
+                            col_letter = chr(76 + col_idx)
+                            ws[f"{col_letter}{excel_row}"] = value
+                        product_count_1 += 1
+                    elif idx < 21:
+                        excel_row = 22 + (idx - 16)
+                        for col_idx, value in enumerate(values[:6]):
+                            col_letter = chr(76 + col_idx)
+                            ws[f"{col_letter}{excel_row}"] = value
+                        product_count_2 += 1
+            
+            wb.save(self.excel_file_path)
+            wb.close()
+            
+            self.log(f"[报表] 已粘贴第8期会计项目表 {row_count} 行数据到'初期'sheet")
+            self.log(f"[报表] 已粘贴期末净资产表 {networth_count} 行数据到'初期'sheet")
+            self.log(f"[报表] 已粘贴期末企业状况表 {enterprise_count} 行数据到'初期'sheet")
+            self.log(f"[报表] 已粘贴期末产品状况表 {product_count_1 + product_count_2} 行数据到'初期'sheet")
+            self.update_status(f"已粘贴初期报表到Excel", color="green")
+            messagebox.showinfo("成功", f"已成功粘贴初期报表到'初期'sheet：\n\n- 第8期会计项目表：{row_count}行\n- 期末净资产表：{networth_count}行\n- 期末企业状况表：{enterprise_count}行\n- 期末产品状况表：{product_count_1 + product_count_2}行")
+            
+            try:
+                import os
+                os.startfile(self.excel_file_path)
+                self.log(f"[文件] 已用系统默认程序打开: {self.excel_file_path}")
+            except Exception as e:
+                self.log(f"[警告] 无法自动打开Excel文件: {e}")
             
         except Exception as e:
             self.log(f"[错误] 粘贴初期报表失败: {e}")
@@ -3146,6 +3255,7 @@ class LoginGUI:
                                                         
                                                         self.log(f"[报表] 已提取期末产品状况表 {total_rows} 行数据")
                                                         self.root.after(0, lambda: self.update_status(f"已提取第8期报表数据", color="green"))
+                                                        self.root.after(0, lambda: self.paste_button.config(state=tk.NORMAL))
                                                     else:
                                                         self.log("[报表] 未找到期末产品状况表")
                                                 else:
