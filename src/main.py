@@ -3504,6 +3504,11 @@ class LoginGUI:
                                                 cells = row.find_all(['td', 'th'])
                                                 if len(cells) > quality_col_idx:
                                                     val = cells[quality_col_idx].get_text(strip=True)
+                                                    try:
+                                                        val_float = float(val) / 100
+                                                        val = f"{val_float:.4f}"
+                                                    except ValueError:
+                                                        pass
                                                     quality_values.append(val)
                                             
                                             if table_idx == 0:
