@@ -52,6 +52,7 @@ class LoginGUI:
         self.current_game_id = None
         self.current_team_id = None
         self.period_8_url = None
+        self.period_8_id = None
     
     def setup_ui(self):
         main_frame = ttk.Frame(self.root, padding="20")
@@ -567,6 +568,45 @@ class LoginGUI:
             width=15
         )
         extract_button.pack(side=tk.LEFT)
+        
+        salary_table_frame = ttk.Frame(salary_coefficient_tab)
+        salary_table_frame.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
+        
+        salary_columns = ("col0", "col1", "col2", "col3", "col4", "col5")
+        salary_table = ttk.Treeview(
+            salary_table_frame,
+            columns=salary_columns,
+            show="headings",
+            height=19
+        )
+        
+        salary_table.heading("col0", text="")
+        salary_table.heading("col1", text="工资系数")
+        salary_table.heading("col2", text="产品1")
+        salary_table.heading("col3", text="产品2")
+        salary_table.heading("col4", text="产品3")
+        salary_table.heading("col5", text="产品4")
+        
+        salary_table.column("col0", width=80, anchor=tk.CENTER, stretch=True)
+        salary_table.column("col1", width=100, anchor=tk.CENTER, stretch=True)
+        salary_table.column("col2", width=80, anchor=tk.CENTER, stretch=True)
+        salary_table.column("col3", width=80, anchor=tk.CENTER, stretch=True)
+        salary_table.column("col4", width=80, anchor=tk.CENTER, stretch=True)
+        salary_table.column("col5", width=80, anchor=tk.CENTER, stretch=True)
+        
+        salary_table.insert("", tk.END, values=("", "正品参数", "2.25", "2.15", "2.05", "1.95"))
+        
+        salary_table.insert("", tk.END, values=("第1期", "", "0.9500", "0.9500", "0.9500", "0.9500"))
+        
+        for i in range(2, 10):
+            salary_table.insert("", tk.END, values=(f"第{i}期", "", "", "", "", ""))
+        
+        for i in range(1, 10):
+            salary_table.insert("", tk.END, values=(f"第{i}期", "", "", "", "", ""))
+        
+        salary_table.pack(fill=tk.BOTH, expand=True)
+        
+        self.salary_table = salary_table
         
         initial_data_tab = ttk.Frame(notebook)
         notebook.add(initial_data_tab, text="初期数据")
@@ -1503,16 +1543,102 @@ class LoginGUI:
                 self.update_status("浏览器未启动", color="red")
                 self.log("[错误] page_handler为None")
                 return
-                
-            self.log("[正品率] 开始提取前八期正品率...")
-            self.update_status("正在提取前八期正品率", color="blue")
             
-            messagebox.showinfo("提示", "前八期正品率提取功能开发中...")
+            if not self.period_8_id:
+                messagebox.showerror("错误", "第8期period_id未提取，请先切换到初期数据tab")
+                self.log("[错误] 第8期period_id未提取")
+                return
+            
+            if not self.current_game_id or not self.current_team_id:
+                messagebox.showerror("错误", "game_id或team_id未提取")
+                self.log("[错误] game_id或team_id未提取")
+                return
+            
+            self.log("[工资系数] 开始提取前九期工资系数...")
+            self.update_status("正在提取前九期工资系数", color="blue")
+            
+            if not self.playwright_thread or not self.playwright_thread.is_alive():
+                self.log("[错误] Playwright线程未运行")
+                return
+            
+            self.playwright_queue.append(('extract_wage_rates', None))
             
         except Exception as e:
-            self.log(f"[错误] 提取前八期正品率失败: {e}")
-            self.update_status("提取前八期正品率失败", color="red")
-            messagebox.showerror("错误", f"提取前八期正品率失败：\n\n{e}")
+            self.log(f"[错误] 提取工资系数失败: {e}")
+            self.update_status("提取工资系数失败", color="red")
+            messagebox.showerror("错误", f"提取工资系数失败：\n\n{e}")
+    
+    def update_salary_table(self, wage_rates):
+        try:
+            children = self.salary_table.get_children()
+            if len(children) < 10:
+                self.log("[工资系数] 表格行数不足")
+                return
+            
+            for period_num in range(1, 10):
+                row_id = children[period_num]
+                current_values = list(self.salary_table.item(row_id, 'values'))
+                current_values[1] = wage_rates.get(period_num, '')
+                self.salary_table.item(row_id, values=current_values)
+            
+            quality_params = [2.25, 2.15, 2.05, 1.95]
+            
+            for period_num in range(2, 10):
+                row_id = children[period_num]
+                current_values = list(self.salary_table.item(row_id, 'values'))
+                
+                prev_row_id = children[period_num - 1]
+                prev_values = list(self.salary_table.item(prev_row_id, 'values'))
+                
+                wage_rate = float(current_values[1]) if current_values[1] else 0
+                
+                for col_idx in range(4):
+                    quality_param = quality_params[col_idx]
+                    prev_value = float(prev_values[col_idx + 2]) if prev_values[col_idx + 2] else 0.95
+                    
+                    new_value = 0.95 + (wage_rate - 1) * quality_param * 0.07 + (prev_value - 0.95) * 0.3
+                    new_value = min(1.0, new_value)
+                    current_values[col_idx + 2] = f"{new_value:.4f}"
+                
+                self.salary_table.item(row_id, values=current_values)
+            
+            self.log("[工资系数] 表格已更新")
+        except Exception as e:
+            self.log(f"[错误] 更新工资系数表格失败: {e}")
+    
+    def update_quality_rates_table(self, quality_rates_data):
+        try:
+            children = self.salary_table.get_children()
+            if len(children) < 19:
+                self.log("[正品率] 表格行数不足")
+                return
+            
+            product_col_map = {
+                '产品1': 2,
+                '产品2': 3,
+                '产品3': 4,
+                '产品4': 5
+            }
+            
+            self.log(f"[正品率] 收到的数据: {quality_rates_data}")
+            
+            for product, values in quality_rates_data.items():
+                self.log(f"[正品率] 处理 {product}, 列索引: {product_col_map.get(product)}")
+                if product in product_col_map:
+                    col_idx = product_col_map[product]
+                    
+                    for i, val in enumerate(values):
+                        if i < 8:
+                            row_idx = 10 + i
+                            if row_idx < len(children):
+                                row_id = children[row_idx]
+                                current_values = list(self.salary_table.item(row_id, 'values'))
+                                current_values[col_idx] = val
+                                self.salary_table.item(row_id, values=current_values)
+            
+            self.log("[正品率] 正品率表格已更新")
+        except Exception as e:
+            self.log(f"[错误] 更新正品率表格失败: {e}")
     
     def extract_initial_report(self):
         try:
@@ -3083,8 +3209,10 @@ class LoginGUI:
                         
                         if match:
                             period_id = match.group(1)
+                            self.period_8_id = period_id
                             report_url = f"https://www.ibizsim.cn/games/private_report?gameid={self.current_game_id}&periodid={period_id}&teamid={self.current_team_id}"
                             self.period_8_url = report_url
+                            self.log(f"[Tab切换] 第8期period_id: {period_id}")
                             self.log(f"[Tab切换] 第8期报表完整URL: {report_url}")
                             self.root.after(0, lambda: self.extract_initial_report_button.config(state=tk.NORMAL))
                         else:
@@ -3272,6 +3400,134 @@ class LoginGUI:
                         except Exception as e:
                             self.log(f"[报表] 提取表格数据失败: {e}")
                             self.root.after(0, lambda: self.update_status("提取表格数据失败", color="red"))
+                    elif op_type == 'extract_wage_rates':
+                        self.log("[工资系数] 开始提取前九期工资系数")
+                        
+                        if not self.page_handler:
+                            self.log("[错误] page_handler为None")
+                            return
+                        
+                        if not self.period_8_id:
+                            self.log("[错误] period_8_id为None")
+                            return
+                        
+                        page = self.page_handler.get_page()
+                        if not page:
+                            self.log("[错误] page为None")
+                            return
+                        
+                        try:
+                            period_8_id_int = int(self.period_8_id)
+                            wage_rates = {}
+                            
+                            for period_num in range(1, 10):
+                                if period_num <= 8:
+                                    period_id = period_8_id_int - (8 - period_num)
+                                else:
+                                    period_id = period_8_id_int + 1
+                                
+                                url = f"https://www.ibizsim.cn/games/decision?gameid={self.current_game_id}&mode=old&periodid={period_id}&teamid={self.current_team_id}&type=raw"
+                                
+                                self.log(f"[工资系数] 正在提取第{period_num}期，period_id={period_id}")
+                                
+                                page.goto(url)
+                                page.wait_for_load_state('networkidle')
+                                
+                                html_content = page.content()
+                                
+                                from bs4 import BeautifulSoup
+                                soup = BeautifulSoup(html_content, 'html.parser')
+                                
+                                wage_rate_input = soup.find('input', {'id': 'decision_wage_rate', 'name': 'decision[wage_rate]'})
+                                
+                                if wage_rate_input:
+                                    value = wage_rate_input.get('value', '')
+                                    if period_num == 9 and (not value or value == '1.0'):
+                                        value = '1.25'
+                                        self.log(f"[工资系数] 第9期数据无效或为1.0，设为默认值: 1.25")
+                                    wage_rates[period_num] = value
+                                    self.log(f"[工资系数] 第{period_num}期工资系数: {value}")
+                                else:
+                                    if period_num == 9:
+                                        wage_rates[period_num] = '1.25'
+                                        self.log(f"[工资系数] 第9期未找到工资系数输入框，设为默认值: 1.25")
+                                    else:
+                                        wage_rates[period_num] = ''
+                                        self.log(f"[工资系数] 第{period_num}期未找到工资系数输入框")
+                            
+                            self.root.after(0, lambda: self.update_salary_table(wage_rates))
+                            
+                            self.log("[正品率] 正在跳转到第8期报表页面提取正品率...")
+                            report_url = f"https://www.ibizsim.cn/games/private_report?gameid={self.current_game_id}&periodid={self.period_8_id}&teamid={self.current_team_id}"
+                            page.goto(report_url)
+                            page.wait_for_load_state('networkidle')
+                            
+                            try:
+                                serial_tab = page.query_selector('a[href="#private_report_serial"]')
+                                if serial_tab:
+                                    serial_tab.click()
+                                    page.wait_for_timeout(1000)
+                                    self.log("[正品率] 已点击时间序列tab")
+                            except Exception as e:
+                                self.log(f"[正品率] 点击时间序列tab失败: {e}")
+                            
+                            html_content = page.content()
+                            soup = BeautifulSoup(html_content, 'html.parser')
+                            
+                            quality_rates_data = {}
+                            
+                            serial_div = soup.find('div', id='private_report_serial')
+                            self.log(f"[正品率] 查找serial_div: {serial_div is not None}")
+                            
+                            if serial_div:
+                                all_text = serial_div.get_text()
+                                self.log(f"[正品率] serial_div包含'产品销售时间序列数据': {'产品销售时间序列数据' in all_text}")
+                                
+                                tables = serial_div.find_all('table')
+                                self.log(f"[正品率] 找到{len(tables)}个table")
+                                
+                                for table_idx, table in enumerate(tables):
+                                    rows = table.find_all('tr')
+                                    if rows:
+                                        header_row = rows[0]
+                                        headers = [th.get_text(strip=True) for th in header_row.find_all(['th', 'td'])]
+                                        
+                                        quality_col_idx = None
+                                        for idx, header in enumerate(headers):
+                                            if '正品率' in header or '正频率' in header:
+                                                quality_col_idx = idx
+                                                break
+                                        
+                                        if quality_col_idx is not None:
+                                            quality_values = []
+                                            for row in rows[1:9]:
+                                                cells = row.find_all(['td', 'th'])
+                                                if len(cells) > quality_col_idx:
+                                                    val = cells[quality_col_idx].get_text(strip=True)
+                                                    quality_values.append(val)
+                                            
+                                            if table_idx == 0:
+                                                quality_rates_data['产品1'] = quality_values
+                                                self.log(f"[正品率] 产品A市场1(表格0): {quality_values}")
+                                            elif table_idx == 4:
+                                                quality_rates_data['产品2'] = quality_values
+                                                self.log(f"[正品率] 产品B市场1(表格4): {quality_values}")
+                                            elif table_idx == 8:
+                                                quality_rates_data['产品3'] = quality_values
+                                                self.log(f"[正品率] 产品C市场1(表格8): {quality_values}")
+                                            elif table_idx == 12:
+                                                quality_rates_data['产品4'] = quality_values
+                                                self.log(f"[正品率] 产品D市场1(表格12): {quality_values}")
+                            else:
+                                self.log("[正品率] 未找到private_report_serial div")
+                            
+                            self.root.after(0, lambda: self.update_quality_rates_table(quality_rates_data))
+                            self.root.after(0, lambda: self.update_status("工资系数和正品率提取完成", color="green"))
+                            self.log(f"[正品率] 提取完成，共{len(quality_rates_data)}组数据: {list(quality_rates_data.keys())}")
+                            
+                        except Exception as e:
+                            self.log(f"[工资系数] 提取失败: {e}")
+                            self.root.after(0, lambda: self.update_status("工资系数提取失败", color="red"))
                     elif op_type == 'stop':
                         self.log("[Playwright] 执行停止操作")
                         self.cleanup_browser()
