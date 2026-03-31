@@ -829,13 +829,11 @@ class LoginGUI:
                     if has_rules:
                         self.import_button.config(state=tk.NORMAL)
                         self.extract_button.config(state=tk.NORMAL)
-                        self.open_file_button.config(state=tk.NORMAL)
                         self.log(f"[文件] 规则已复制，已启用导入和提取按钮")
                     else:
                         self.import_button.config(state=tk.DISABLED)
                         self.extract_button.config(state=tk.DISABLED)
                         self.paste_button.config(state=tk.DISABLED)
-                        self.open_file_button.config(state=tk.NORMAL)
                         self.log(f"[文件] 规则未复制，按钮保持禁用状态")
                     
                 else:
