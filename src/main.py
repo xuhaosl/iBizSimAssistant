@@ -645,6 +645,17 @@ class LoginGUI:
         )
         paste_button.pack(side=tk.LEFT)
         
+        open_initial_file_button = ttk.Button(
+            initial_button_frame,
+            text="打开文件",
+            command=self.open_excel_file,
+            state=tk.DISABLED,
+            width=10
+        )
+        open_initial_file_button.pack(side=tk.LEFT, padx=2)
+        
+        self.open_initial_file_button = open_initial_file_button
+        
         initial_report_frame = ttk.Frame(initial_data_tab)
         initial_report_frame.pack(fill=tk.BOTH, expand=True, pady=(2, 2))
         
@@ -1885,12 +1896,7 @@ class LoginGUI:
             self.update_status(f"已粘贴初期报表到Excel", color="green")
             messagebox.showinfo("成功", f"已成功粘贴初期报表到'初期'sheet：\n\n- 第8期会计项目表：{row_count}行\n- 期末净资产表：{networth_count}行\n- 期末企业状况表：{enterprise_count}行\n- 期末产品状况表：{product_count_1 + product_count_2}行")
             
-            try:
-                import os
-                os.startfile(self.excel_file_path)
-                self.log(f"[文件] 已用系统默认程序打开: {self.excel_file_path}")
-            except Exception as e:
-                self.log(f"[警告] 无法自动打开Excel文件: {e}")
+            self.open_initial_file_button.config(state=tk.NORMAL)
             
         except Exception as e:
             self.log(f"[错误] 粘贴初期报表失败: {e}")
