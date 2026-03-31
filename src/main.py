@@ -257,6 +257,17 @@ class LoginGUI:
         )
         import_button.pack(side=tk.LEFT, padx=2)
         
+        open_file_button = ttk.Button(
+            rules_button_frame,
+            text="打开文件",
+            command=self.open_excel_file,
+            state=tk.DISABLED,
+            width=10
+        )
+        open_file_button.pack(side=tk.LEFT, padx=2)
+        
+        self.open_file_button = open_file_button
+        
         rules_split_frame = ttk.Frame(rules_tab)
         rules_split_frame.pack(fill=tk.BOTH, expand=True)
         
@@ -818,11 +829,13 @@ class LoginGUI:
                     if has_rules:
                         self.import_button.config(state=tk.NORMAL)
                         self.extract_button.config(state=tk.NORMAL)
+                        self.open_file_button.config(state=tk.NORMAL)
                         self.log(f"[文件] 规则已复制，已启用导入和提取按钮")
                     else:
                         self.import_button.config(state=tk.DISABLED)
                         self.extract_button.config(state=tk.DISABLED)
                         self.paste_button.config(state=tk.DISABLED)
+                        self.open_file_button.config(state=tk.NORMAL)
                         self.log(f"[文件] 规则未复制，按钮保持禁用状态")
                     
                 else:
@@ -1500,20 +1513,28 @@ class LoginGUI:
             self.notebook.tab(self.submit_decision_tab_index, state="normal")
             self.log("[导入] 已启用工资系数、初期数据、排产工具、报表下载、提交决策功能")
             
-            try:
-                import os
-                os.startfile(self.excel_file_path)
-                self.log(f"[文件] 已用系统默认程序打开: {self.excel_file_path}")
-                
-                self.root.focus_force()
-                self.root.after(500, self.root.focus_set)
-            except Exception as e:
-                self.log(f"[文件] 用系统程序打开失败: {e}")
+            self.open_file_button.config(state=tk.NORMAL)
             
         except Exception as e:
             self.log(f"[错误] 导入规则到Excel失败: {e}")
             self.update_status("导入规则到Excel失败", color="red")
             messagebox.showerror("错误", f"导入规则到Excel失败：\n\n{e}")
+    
+    def open_excel_file(self):
+        try:
+            if not self.excel_file_path:
+                messagebox.showwarning("提示", "请先选择Excel文件")
+                return
+            
+            import os
+            os.startfile(self.excel_file_path)
+            self.log(f"[文件] 已用系统默认程序打开: {self.excel_file_path}")
+            
+            self.root.focus_force()
+            self.root.after(500, self.root.focus_set)
+        except Exception as e:
+            self.log(f"[文件] 用系统程序打开失败: {e}")
+            messagebox.showerror("错误", f"打开文件失败：\n\n{e}")
     
     def on_tab_changed(self, event):
         try:
