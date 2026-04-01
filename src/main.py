@@ -580,6 +580,17 @@ class LoginGUI:
         )
         extract_button.pack(side=tk.LEFT)
         
+        self.calc_quality_params_button = ttk.Button(
+            salary_button_frame,
+            text="计算正品参数",
+            command=self.calculate_quality_params,
+            state=tk.DISABLED,
+            width=12
+        )
+        self.calc_quality_params_button.pack(side=tk.LEFT, padx=(5, 0))
+        
+        self.extract_quality_rates_button = extract_button
+        
         salary_table_frame = ttk.Frame(salary_coefficient_tab)
         salary_table_frame.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
         
@@ -1667,8 +1678,131 @@ class LoginGUI:
                                 self.salary_table.item(row_id, values=current_values)
             
             self.log("[正品率] 正品率表格已更新")
+            self.calc_quality_params_button.config(state=tk.NORMAL)
+            self.log("[正品率] 已启用计算正品参数按钮")
         except Exception as e:
             self.log(f"[错误] 更新正品率表格失败: {e}")
+    
+    def calculate_quality_params(self):
+        try:
+            children = self.salary_table.get_children()
+            if len(children) < 18:
+                self.log("[正品参数] 表格行数不足")
+                messagebox.showwarning("提示", "表格数据不足，请先提取正品率数据")
+                return
+            
+            quality_params = []
+            
+            for col_idx in range(4):
+                x_values = []
+                
+                for period_num in range(2, 9):
+                    predict_row_idx = period_num
+                    actual_row_idx = period_num + 9
+                    
+                    if predict_row_idx >= len(children) or actual_row_idx >= len(children):
+                        continue
+                    
+                    predict_row = children[predict_row_idx]
+                    actual_row = children[actual_row_idx]
+                    
+                    predict_values = list(self.salary_table.item(predict_row, 'values'))
+                    actual_values = list(self.salary_table.item(actual_row, 'values'))
+                    
+                    wage_rate_str = predict_values[1] if len(predict_values) > 1 else ""
+                    if not wage_rate_str:
+                        continue
+                    try:
+                        wage_rate = float(wage_rate_str)
+                    except ValueError:
+                        continue
+                    
+                    actual_quality_str = actual_values[col_idx + 2] if len(actual_values) > col_idx + 2 else ""
+                    if not actual_quality_str:
+                        continue
+                    try:
+                        actual_quality = float(actual_quality_str)
+                    except ValueError:
+                        continue
+                    
+                    if wage_rate <= 1:
+                        continue
+                    
+                    C_n = 0.0
+                    decay = 1.0
+                    for k in range(period_num, 1, -1):
+                        k_row_idx = k
+                        if k_row_idx >= len(children):
+                            continue
+                        k_row = children[k_row_idx]
+                        k_values = list(self.salary_table.item(k_row, 'values'))
+                        k_wage_str = k_values[1] if len(k_values) > 1 else ""
+                        if k_wage_str:
+                            try:
+                                k_wage = float(k_wage_str)
+                                C_n += (k_wage - 1) * decay
+                            except ValueError:
+                                pass
+                        decay *= 0.3
+                    
+                    if C_n <= 0:
+                        continue
+                    
+                    x = (actual_quality - 0.95) / (0.07 * C_n)
+                    
+                    if 1.5 <= x <= 3.0:
+                        x_values.append(x)
+                
+                if x_values:
+                    avg_x = sum(x_values) / len(x_values)
+                    quality_params.append(round(avg_x, 2))
+                else:
+                    quality_params.append(None)
+            
+            if all(p is None for p in quality_params):
+                self.log("[正品参数] 无法计算正品参数，请确保已提取工资系数和正品率数据")
+                messagebox.showwarning("提示", "无法计算正品参数\n\n请确保已提取工资系数和正品率数据")
+                return
+            
+            params_row = children[0]
+            current_values = list(self.salary_table.item(params_row, 'values'))
+            
+            for i, param in enumerate(quality_params):
+                if param is not None:
+                    current_values[i + 2] = str(param)
+            
+            self.salary_table.item(params_row, values=current_values)
+            
+            for period_num in range(2, 10):
+                row_id = children[period_num]
+                current_values = list(self.salary_table.item(row_id, 'values'))
+                
+                prev_row_id = children[period_num - 1]
+                prev_values = list(self.salary_table.item(prev_row_id, 'values'))
+                
+                wage_rate = float(current_values[1]) if current_values[1] else 0
+                
+                for col_idx in range(4):
+                    quality_param = quality_params[col_idx]
+                    if quality_param is None:
+                        quality_param = [2.25, 2.15, 2.05, 1.95][col_idx]
+                    
+                    prev_value = float(prev_values[col_idx + 2]) if prev_values[col_idx + 2] else 0.95
+                    
+                    new_value = 0.95 + (wage_rate - 1) * quality_param * 0.07 + (prev_value - 0.95) * 0.3
+                    new_value = min(1.0, new_value)
+                    current_values[col_idx + 2] = f"{new_value:.4f}"
+                
+                self.salary_table.item(row_id, values=current_values)
+            
+            self.log(f"[正品参数] 计算完成: {quality_params}")
+            self.log("[正品参数] 已更新预测正品率")
+            self.update_status("正品参数计算完成", color="green")
+            
+        except Exception as e:
+            self.log(f"[错误] 计算正品参数失败: {e}")
+            self.update_status("计算正品参数失败", color="red")
+            messagebox.showerror("错误", f"计算正品参数失败：\n\n{e}")
     
     def extract_initial_report(self):
         try:
@@ -3240,6 +3374,7 @@ class LoginGUI:
                             self.log(f"[Tab切换] 第8期period_id: {period_id}")
                             self.log(f"[Tab切换] 第8期报表完整URL: {report_url}")
                             self.root.after(0, lambda: self.extract_initial_report_button.config(state=tk.NORMAL))
+                            self.root.after(0, lambda: self.extract_quality_rates_button.config(state=tk.NORMAL))
                         else:
                             self.log("[Tab切换] 未找到第8期period_id")
                     elif op_type == 'navigate_period8':
